@@ -1,0 +1,4 @@
+# ignore todo file
+todo.txt
+# ignore virtual environment
+env/
