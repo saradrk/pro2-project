@@ -2,3 +2,9 @@
 todo.txt
 # ignore virtual environment
 env/
+# ignore data
+Data/
+# ignore .DS_Store
+.DS_Store
+# ignore logs
+*.log
