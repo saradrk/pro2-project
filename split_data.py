@@ -17,6 +17,7 @@ class SplitData:
     """
 
     def __init__(self, data_file):
+        """Read data, save entries in list"""
         self.data = []
         try:
             with open(data_file, 'r') as data:
@@ -29,15 +30,26 @@ class SplitData:
             data.close()
 
     def train_test_val_split(self, train_file, test_file, val_file):
+        """Split data into training/test/validation set (70%/20%/10%)
+        Save data in seperate JSON files if not already existend
+        arguments: file names
+        """
         logging.info(len(self.data))
         random.seed(12)
+        # Create list with randomly shuffled indices for
+        # randomly distributing the data
         indices = [i for i in range(len(self.data))]
         random.shuffle(indices)
         train_split_index = (len(indices) / 100) * 70
         test_split_index = (len(indices) / 100) * 90
+        # Count entries for info log
         train_count = 0
         test_count = 0
         val_count = 0
+        # If files haven't been splitted yet:
+        # Add random 70% of data entries to training file using first 70% of
+        # random indices, use next 20% of random indices for test and
+        # remaining approximately 10% for validation file
         if open(train_file, 'r'):
             logging.info('Corpus has already been split')
         else:
