@@ -8,3 +8,7 @@ Data/
 .DS_Store
 # ignore logs
 *.log
+# ignore pycache
+__pycache__/
+# ignore csvs
+*.csv
