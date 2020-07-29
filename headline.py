@@ -6,10 +6,11 @@
 
 class Headline:
 
-    def __init__(self, headline_json, tokens, pos_tags, lemmas):
+    def __init__(self, id, headline_json, tokens, pos_tags, lemmas):
         self.sarcasm = headline_json['is_sarcastic']
         self.headline = headline_json['headline']
-        self.id = headline_json['article_link']
+        self.link = headline_json['article_link']
+        self.id = id
         self.tokens = tokens
         self.pos_tags = pos_tags
         self.lemmas = lemmas
