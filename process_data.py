@@ -19,6 +19,7 @@ class HeadlineData:
         self.model = language_model
         self.nlp = spacy.load(language_model)
         self._process_file(data_file)
+        self.features = self._compute_features()
 
     def _process_file(self, filename):
         """Read data from file
@@ -61,6 +62,9 @@ class HeadlineData:
             average_word_length = (sum(word_lengths) / len(word_lengths))
             yield (self.data[n], round(average_word_length, 2))
             n += 1
+
+    def _compute_features(self):
+        return [self.average_word_lengths()]
 
 
 if __name__ == '__main__':
