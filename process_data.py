@@ -19,7 +19,7 @@ class HeadlineData:
         self.model = language_model
         self.nlp = spacy.load(language_model)
         self._process_file(data_file)
-        self.features = self._compute_features()
+        self.features = self.generate_features()
 
     def _process_file(self, filename):
         """Read data from file
@@ -47,24 +47,47 @@ class HeadlineData:
         """
         json_entry = json.loads(data_entry)
         doc = self.nlp(json_entry['headline'])
-        tokens = [token.text for token in doc]
-        pos_tags = [token.pos_ for token in doc]
-        lemmas = [token.lemma_ for token in doc]
-        return Headline(id_number, json_entry, tokens, pos_tags, lemmas)
+        return Headline(id_number, json_entry, doc)
 
-    def average_word_lengths(self):
-        """Generator to get average word length"""
+    def generate_features(self):
         n = 0
         while n < len(self.data):
-            # lengths of tokens in headline
-            word_lengths = [len(token) for token in self.data[n].tokens]
-            # average length of tokens
-            average_word_length = (sum(word_lengths) / len(word_lengths))
-            yield (self.data[n], round(average_word_length, 2))
+            awl = self._awl(self.data[n])
+            aswc = self._average_stop_word_count(self.data[n])
+            yield [self.data[n].id,
+                   self.data[n].headline,
+                   self.data[n].sarcasm,
+                   awl,
+                   aswc]
             n += 1
 
-    def _compute_features(self):
-        return [self.average_word_lengths()]
+    def _awl(self, headline):
+        word_lengths = [len(token) for token in headline.tokens]
+        average_word_length = (sum(word_lengths) / len(word_lengths))
+        return round(average_word_length, 2)
+
+    def _average_stop_word_count(self, headline):
+        stop_words = [1 for token in headline.doc if token.is_stop is True]
+        aswc = sum(stop_words) / len(headline.tokens)
+        return round(aswc, 2)
+
+    # def average_word_lengths(self):
+    #     """Generator to get average word length"""
+    #     n = 0
+    #     while n < len(self.data):
+    #         # lengths of tokens in headline
+    #         word_lengths = [len(token) for token in self.data[n].tokens]
+    #         # average length of tokens
+    #         average_word_length = (sum(word_lengths) / len(word_lengths))
+    #         yield (self.data[n], round(average_word_length, 2))
+    #         n += 1
+
+    # def stop_word_count(self):
+    #     n = 0
+    #     while n < len(self.data)
+
+    # def _compute_features(self):
+    #     return [self.average_word_lengths()]
 
 
 if __name__ == '__main__':
