@@ -81,25 +81,6 @@ class HeadlineData:
         logging.info('Single statistics computed')
 
 
-    # def average_word_lengths(self):
-    #     """Generator to get average word length"""
-    #     n = 0
-    #     while n < len(self.data):
-    #         # lengths of tokens in headline
-    #         word_lengths = [len(token) for token in self.data[n].tokens]
-    #         # average length of tokens
-    #         average_word_length = (sum(word_lengths) / len(word_lengths))
-    #         yield (self.data[n], round(average_word_length, 2))
-    #         n += 1
-
-    # def stop_word_count(self):
-    #     n = 0
-    #     while n < len(self.data)
-
-    # def _compute_features(self):
-    #     return [self.average_word_lengths()]
-
-
 if __name__ == '__main__':
     HD = HeadlineData('./Data/mini_data.json')
     
