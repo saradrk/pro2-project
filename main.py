@@ -1,0 +1,30 @@
+# Sara Derakhshani
+# 30.07.2020
+# Programmierung II: Projekt
+# Main
+
+from classifier import Classifier
+from evaluate import Evaluator
+import time
+import logging
+
+logging.basicConfig(filename='process_data.log', level=logging.INFO,
+                    format='%(asctime)s %(message)s')
+
+
+def main():
+    IronyClassifier = Classifier('./csv/Train_single_stats.csv',
+                                 './csv/Train_class_stats.csv',
+                                 './Data/Sarcasm_Headlines_Dataset_v2_train.json')
+    IronyClassifier.train_model()
+    IronyClassifier.predict('./Data/Sarcasm_Headlines_Dataset_v2_val.json',
+                            './csv/Val_single_stats.csv',
+                            './csv/Val_Predictions.csv')
+    Eval = Evaluator('./csv/Val_Predictions.csv')
+    return Eval.accuracy()
+
+if __name__ == '__main__':
+    start_time = time.time()
+    logging.info('Accuracy: {}'.format(main()))
+    duration = time.time() - start_time
+    logging.info(f'Running time irony classifier: {duration} sec')
