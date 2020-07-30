@@ -86,9 +86,9 @@ class Classifier:
                     for row in csv_reader:
                         stats_to_predict = row[3:]
                         nonsarcastic_dist = self._distance(nonsarcastic_stats,
-                                                      stats_to_predict)
+                                                           stats_to_predict)
                         sarcastic_dist = self._distance(sarcastic_stats,
-                                                   stats_to_predict)
+                                                        stats_to_predict)
                         if nonsarcastic_dist < sarcastic_dist:
                             prediction = 0
                         elif nonsarcastic_dist > sarcastic_dist:
