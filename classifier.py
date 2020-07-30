@@ -20,8 +20,6 @@ class Classifier:
         self.single_stats = single_stats_file
         self.class_stats = class_stats_file
         self.datafile = datafile
-        self.stats = {'awl': [0, 0],
-                      'stop_words': [0, 0]}
 
     def train_model(self):
         """Create classification model as csv file containing statistics
