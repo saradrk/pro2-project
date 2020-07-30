@@ -38,24 +38,40 @@ class Classifier:
         else:
             TrainingData = HeadlineData(self.datafile, self.single_stats)
             TrainingData.compute_single_statistics()
-            sarcasm_count = 0
-            nonsarcasm_count = 0
+            count_0 = 0
+            count_1 = 0
             with open(self.single_stats) as csv_file:
                 csv_reader = csv.reader(csv_file)
+                row_counter = 0
                 for row in csv_reader:
-                    f_counter = 3
-                    if int(row[2]) == 0:
-                        nonsarcasm_count += 1
-                        for feature in self.stats:
-                            self.stats[feature][0] += float(row[f_counter])
+                    # Index counter for feature columns
+                    # 0 = headline, 1 = class, 2,... = features
+                    f_counter = 2
+                    # First line contains column names
+                    if row_counter == 0:
+                        feature_names = row[f_counter:]
+                        # Add column labels to class statistics csv
+                        labels = ['is_sarcastic'] + feature_names
+                        self.add_csv_entry(self.class_stats, labels)
+                        # Class figures
+                        # Value index 0 for class 0 (no sarcasm)
+                        # Value index 1 for class 1 (sarcasm)
+                        class_figs = {fn: [0, 0] for fn in feature_names}
+                    # Nonsarcastic entry
+                    elif int(row[1]) == 0:
+                        count_0 += 1
+                        for feature in feature_names:
+                            class_figs[feature][0] += float(row[f_counter])
                             f_counter += 1
+                    # Sarcastic entry
                     else:
-                        sarcasm_count += 1
-                        for feature in self.stats:
-                            self.stats[feature][1] += float(row[f_counter])
+                        count_1 += 1
+                        for feature in feature_names:
+                            class_figs[feature][1] += float(row[f_counter])
                             f_counter += 1
-            stats_0 = [0] + [(self.stats[f][0]/nonsarcasm_count) for f in self.stats]
-            stats_1 = [1] + [(self.stats[f][1]/sarcasm_count) for f in self.stats]
+                    row_counter += 1
+            stats_0 = [0] + [(class_figs[f][0]/count_0) for f in class_figs]
+            stats_1 = [1] + [(class_figs[f][1]/count_1) for f in class_figs]
             self.add_csv_entry(self.class_stats, stats_0)
             self.add_csv_entry(self.class_stats, stats_1)
 
@@ -73,18 +89,24 @@ class Classifier:
         if os.path.exists(self.class_stats):
             with open(self.class_stats) as csv_file:
                 csv_reader = csv.reader(csv_file)
-                nonsarcastic_stats = []
-                sarcastic_stats = []
                 for row in csv_reader:
-                    if int(row[0]) == 0:
-                        nonsarcastic_stats += row[1:]
+                    if row[0] == 'is_sarcastic':
+                        continue
+                    elif int(row[0]) == 0:
+                        nonsarcastic_stats = row[1:]
+                    elif int(row[0]) == 1:
+                        sarcastic_stats = row[1:]
                     else:
-                        sarcastic_stats += row[1:]
+                        logging.info('Wrong entries in class statistics')
                 csv_file.close()
                 with open(test_stats_file) as test_stats:
                     csv_reader = csv.reader(test_stats)
+                    row_counter = 0
                     for row in csv_reader:
-                        stats_to_predict = row[3:]
+                        if row_counter == 0:
+                            row_counter += 1
+                            continue
+                        stats_to_predict = row[2:]
                         nonsarcastic_dist = self._distance(nonsarcastic_stats,
                                                            stats_to_predict)
                         sarcastic_dist = self._distance(sarcastic_stats,
@@ -95,8 +117,8 @@ class Classifier:
                             prediction = 1
                         else:
                             prediction = 0.5
-                        self.add_csv_entry(pred_csv, [row[1],
-                                                      row[2],
+                        self.add_csv_entry(pred_csv, [row[0],
+                                                      row[1],
                                                       prediction]
                                            )
         else:
