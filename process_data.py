@@ -20,8 +20,8 @@ class HeadlineData:
         self.model = language_model
         self.nlp = spacy.load(language_model)
         self._process_file(data_file)
-        self.features = self._generate_features()
-        self.out_csv = out_csv 
+        self.features = (headline.features for headline in self.data)
+        self.out_csv = out_csv
 
     def _process_file(self, filename):
         """Read data from file
@@ -34,8 +34,7 @@ class HeadlineData:
                 entry_count = 0
                 for entry in file:
                     if len(entry) > 0:
-                        self.data.append(self._process_headline(entry,
-                                                                entry_count))
+                        self.data.append(self._process_headline(entry))
                         entry_count += 1
         except Exception as e:
             logging.info(e)
@@ -43,44 +42,28 @@ class HeadlineData:
             file.close()
             logging.info('{} entries processed'.format(entry_count))
 
-    def _process_headline(self, data_entry, id_number):
+    def _process_headline(self, data_entry):
         """Create and return Headline object of data entry with ID number
         Tokenize, POS-tag, lemmatize headline string
         """
         json_entry = json.loads(data_entry)
         doc = self.nlp(json_entry['headline'])
-        return Headline(id_number, json_entry, doc)
-
-    def _generate_features(self):
-        n = 0
-        while n < len(self.data):
-            awl = self._awl(self.data[n])
-            aswc = self._average_stop_word_count(self.data[n])
-            yield [self.data[n].id,
-                   self.data[n].headline,
-                   self.data[n].sarcasm,
-                   awl,
-                   aswc]
-            n += 1
-
-    def _awl(self, headline):
-        word_lengths = [len(token) for token in headline.tokens]
-        average_word_length = (sum(word_lengths) / len(word_lengths))
-        return round(average_word_length, 2)
-
-    def _average_stop_word_count(self, headline):
-        stop_words = [1 for token in headline.doc if token.is_stop is True]
-        aswc = sum(stop_words) / len(headline.tokens)
-        return round(aswc, 2)
+        return Headline(json_entry, doc)
 
     def compute_single_statistics(self):
         with open(self.out_csv, mode='a+') as out_csv:
             writer = csv.writer(out_csv)
+            line_counter = 0
             for feature_list in self.features:
-                writer.writerow(feature_list)
+                if line_counter == 0:
+                    header = [feature[0] for feature in feature_list]
+                    writer.writerow(header)
+                figures = [feature[1] for feature in feature_list]
+                writer.writerow(figures)
+                line_counter += 1
         logging.info('Single statistics computed')
 
 
 if __name__ == '__main__':
-    HD = HeadlineData('./Data/mini_data.json')
-    
+    HD = HeadlineData('./Data/mini_data.json', './csv/out.csv')
+    HD.compute_single_statistics()
