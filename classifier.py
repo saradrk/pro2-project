@@ -81,9 +81,20 @@ class Classifier:
         csv_file.close()
 
     def predict(self, test_data, test_stats_file, pred_csv):
-        TestData = HeadlineData(test_data, test_stats_file)
-        TestData.compute_single_statistics()
-        self.add_csv_entry(pred_csv, ['headline', 'gold', 'prediction'])
+        if os.path.exists(test_stats_file):
+            logging.info('Statistics for prediction already computed. '
+                         'Check if predictions already exist...')
+            if os.path.exists(pred_csv):
+                logging.info('Predictions found in {}'.format(pred_csv))
+                return
+            else:
+                logging.info('No predictions found. Start predicting...')
+        else:
+            logging.info('Computing statistics for prediction data...')
+            TestData = HeadlineData(test_data, test_stats_file)
+            TestData.compute_single_statistics()
+            self.add_csv_entry(pred_csv, ['headline', 'gold', 'prediction'])
+            logging.info('Start predicting...')
         if os.path.exists(self.class_stats):
             with open(self.class_stats) as csv_file:
                 csv_reader = csv.reader(csv_file)

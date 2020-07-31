@@ -13,13 +13,21 @@ logging.basicConfig(filename='process_data.log', level=logging.INFO,
 
 
 def main():
-    IronyClassifier = Classifier('./csv/Train_single_stats.csv',
-                                 './csv/Train_class_stats.csv',
-                                 './Data/Sarcasm_Headlines_Dataset_v2_train.json')
+    # IronyClassifier = Classifier('./csv/Train_single_stats.csv',
+    #                              './csv/Train_class_stats.csv',
+    #                              './Data/Sarcasm_Headlines_Dataset_v2_train.json')
+    # IronyClassifier.train_model()
+    # IronyClassifier.predict('./Data/Sarcasm_Headlines_Dataset_v2_val.json',
+    #                         './csv/Val_single_stats.csv',
+    #                         './csv/Val_Predictions.csv')
+    # Eval = Evaluator('./csv/Val_Predictions.csv')
+    IronyClassifier = Classifier('./csv/mini_single_stats.csv',
+                                 './csv/mini_class_stats.csv',
+                                 './Data/mini_data.json')
     IronyClassifier.train_model()
-    IronyClassifier.predict('./Data/Sarcasm_Headlines_Dataset_v2_val.json',
-                            './csv/Val_single_stats.csv',
-                            './csv/Val_Predictions.csv')
+    IronyClassifier.predict('./Data/mini_test.json',
+                            './csv/mini_test_single_stats.csv',
+                            './csv/mini_test_predictions.csv')
     Eval = Evaluator('./csv/Val_Predictions.csv')
     return Eval.accuracy()
 
