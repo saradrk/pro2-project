@@ -27,8 +27,8 @@ class Headline:
         self.features.extend([('headline', self.headline),
                               ('is_sarcastic', self.sarcasm)])
         self._word_based_features()
-        self._char_based_features()
-        self._sentiment_feature()
+#        self._char_based_features()
+#        self._sentiment_feature()
 
     def _sentiment_feature(self):
         # Compute average named entity count
@@ -45,6 +45,9 @@ class Headline:
         stop_words = [1 for token in self.doc if token.is_stop is True]
         aswc = sum(stop_words) / len(word_lengths)
         self.features.append(('average_stop_word_count', round(aswc, 2)))
+        # Compute number of long words (> 5 characters)
+        nlw = [wl for wl in word_lengths if wl > 6]
+        self.features.append(('number_of_long_words', sum(nlw)))
 
     def _char_based_features(self):
         char_based_features = []
