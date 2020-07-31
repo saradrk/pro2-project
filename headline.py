@@ -28,6 +28,13 @@ class Headline:
                               ('is_sarcastic', self.sarcasm)])
         self._word_based_features()
         self._char_based_features()
+        self._sentiment_feature()
+
+    def _sentiment_feature(self):
+        # Compute average named entity count
+        entities = [1 if token.ent_type > 0 else 0 for token in self.doc]
+        anec = sum(entities) / len(entities)
+        self.features.append(('average_named_entities', round(anec, 2)))
 
     def _word_based_features(self):
         # Compute average word length

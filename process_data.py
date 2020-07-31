@@ -65,5 +65,5 @@ class HeadlineData:
 
 
 if __name__ == '__main__':
-    HD = HeadlineData('./Data/mini_data.json', './csv/out.csv')
+    HD = HeadlineData('./Data/mini_test.json', './csv/out.csv')
     HD.compute_single_statistics()
