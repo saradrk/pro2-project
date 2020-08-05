@@ -21,14 +21,41 @@ class Headline:
         return len(self.headline)
 
     def __contains__(self, token):
-        return token in self.tokens
+        return token in self._tokens()
+
+    def _tokens(self):
+        tokens = [token.text for token in self.doc]
+        return tokens
 
     def _setup_feature_list(self):
         self.features.extend([('headline', self.headline),
                               ('is_sarcastic', self.sarcasm)])
         self._word_based_features()
+        self._syntactic_features()
 #        self._char_based_features()
 #        self._sentiment_feature()
+
+    def _syntactic_features(self):
+        verbs = [1 for token in self.doc if token.pos_ == 'VERB']
+        n_verbs = sum(verbs)
+        verb_ratio = len(verbs) / len(self._tokens())
+#        self.features.append(('n_verbs', n_verbs))
+        self.features.append(('verb_ratio', round(verb_ratio, 2)))
+        nouns = [1 for token in self.doc if token.pos_ == 'NOUN']
+        n_nouns = sum(nouns)
+        noun_ratio = len(nouns) / len(self._tokens())
+#        self.features.append(('n_nouns', n_nouns))
+        self.features.append(('noun_ratio', round(noun_ratio, 2)))
+        adverbs = [1 for token in self.doc if token.pos_ == 'ADV']
+        n_adverbs = sum(adverbs)
+        adverb_ratio = len(adverbs) / len(self._tokens())
+#        self.features.append(('n_adverbs', n_adverbs))
+        self.features.append(('adverb_ratio', round(adverb_ratio, 2)))
+        adjectives = [1 for token in self.doc if token.pos_ == 'ADJ']
+        n_adjectives = sum(adjectives)
+        adjective_ratio = len(adjectives) / len(self._tokens())
+#        self.features.append(('n_adjectives', n_adjectives))
+        self.features.append(('adjective_ratio', round(adjective_ratio, 2)))
 
     def _sentiment_feature(self):
         # Compute average named entity count
@@ -48,6 +75,9 @@ class Headline:
         # Compute number of long words (> 5 characters)
         nlw = [wl for wl in word_lengths if wl > 6]
         self.features.append(('number_of_long_words', sum(nlw)))
+
+    def _semantic_features(self):
+        
 
     def _char_based_features(self):
         char_based_features = []
