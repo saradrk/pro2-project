@@ -20,6 +20,7 @@ class Classifier:
         self.single_stats = single_stats_file
         self.class_stats = class_stats_file
         self.datafile = datafile
+        self.eval_features = {}
 
     def train_model(self):
         """Create classification model as csv file containing statistics
@@ -48,6 +49,8 @@ class Classifier:
                     # First line contains column names
                     if row_counter == 0:
                         feature_names = row[f_counter:]
+                        for feature in feature_names:
+                            self.eval_features[feature] = 0
                         # Add column labels to class statistics csv
                         labels = ['is_sarcastic'] + feature_names
                         self.add_csv_entry(self.class_stats, labels)
@@ -100,7 +103,10 @@ class Classifier:
                 csv_reader = csv.reader(csv_file)
                 for row in csv_reader:
                     if row[0] == 'is_sarcastic':
-                        continue
+                        names = row[1:]
+                        if self.eval_features == {}:
+                            for feature in names:
+                                self.eval_features[feature] = 0
                     elif int(row[0]) == 0:
                         nonsarcastic_stats = row[1:]
                     elif int(row[0]) == 1:
@@ -130,14 +136,34 @@ class Classifier:
                                                       row[1],
                                                       prediction]
                                            )
-        else:
-            logging.info('Model has not been trained yet')
+    #                     if row[1] == '0':
+    #                         if prediction == 0:
+    #                             good = self._select_good_features(sarcastic_stats,
+    #                                                               nonsarcastic_stats,
+    #                                                               names,
+    #                                                               stats_to_predict)
+    #                             for g in good:
+    #                                 self.eval_features[g] += 1
+    #         logging.info(self.eval_features)
+    #     else:
+    #         logging.info('Model has not been trained yet')
+
+    # def _select_good_features(self, s_values, ns_values, names, test_values):
+    #     assert(len(s_values) == len(test_values))
+    #     out_features = []
+    #     for i in range(len(test_values)):
+    #         ns_dist = (float(ns_values[i]) - float(test_values[i]))
+    #         s_dist = (float(s_values[i]) - float(test_values[i]))
+    #         if abs(ns_dist) < abs(s_dist):
+    #             out_features.append(names[i])
+    #     return out_features
 
     def _distance(self, trained_values, test_values):
         assert(len(trained_values) == len(test_values))
         dist = 0
+#        weights = [2, 1, 5, 4.5, 3, 5, 1, 1, 1, 1, 4.5, 1, 1, 1, 5, 6]
         for i in range(len(trained_values)):
-            feature_dist = (float(trained_values[i]) - float(test_values[i]))
+            feature_dist = (float(trained_values[i]) - float(test_values[i])) #* weights[i]
             dist += abs(feature_dist)
         return dist
 
