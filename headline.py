@@ -40,27 +40,27 @@ class Headline:
         self.features.extend([('headline', self.headline),
                               ('is_sarcastic', self.sarcasm)])
         self._word_based_features()
- #       self._syntactic_features()
- #       self._semantic_features()
- #       self._char_based_features()
- #       self._sentiment_feature()
+        self._syntactic_features()
+        # self._semantic_features()
+        # self._char_based_features()
+        self._sentiment_feature()
 
     def _syntactic_features(self):
         verbs = [1 for token in self.doc if token.pos_ == 'VERB']
         n_verbs = sum(verbs)
         verb_ratio = len(verbs) / len(self._tokens())
-        self.features.append(('n_verbs', n_verbs))
-        self.features.append(('verb_ratio', verb_ratio))
+        # self.features.append(('n_verbs', n_verbs))
+        # self.features.append(('verb_ratio', verb_ratio))
         nouns = [1 for token in self.doc if token.pos_ == 'NOUN']
         n_nouns = sum(nouns)
         noun_ratio = len(nouns) / len(self._tokens())
-        self.features.append(('n_nouns', n_nouns))
-        self.features.append(('noun_ratio', noun_ratio))
+        # self.features.append(('n_nouns', n_nouns))
+        # self.features.append(('noun_ratio', noun_ratio))
         adverbs = [1 for token in self.doc if token.pos_ == 'ADV']
         n_adverbs = sum(adverbs)
         adverb_ratio = len(adverbs) / len(self._tokens())
-        self.features.append(('n_adverbs', n_adverbs))
-        self.features.append(('adverb_ratio', adverb_ratio))
+        # self.features.append(('n_adverbs', n_adverbs))
+        # self.features.append(('adverb_ratio', adverb_ratio))
         adjectives = [1 for token in self.doc if token.pos_ == 'ADJ']
         n_adjectives = sum(adjectives)
         adjective_ratio = len(adjectives) / len(self._tokens())
@@ -71,7 +71,7 @@ class Headline:
         # Compute average named entity count
         entities = [1 if token.ent_type > 0 else 0 for token in self.doc]
         anec = sum(entities) / len(entities)
-        self.features.append(('average_named_entities', anec))
+ #       self.features.append(('average_named_entities', anec)) # + avl 59,699
         # Compute polarity scores
         pos_scores = []
         neg_scores = []
@@ -97,8 +97,8 @@ class Headline:
             else:
                 pos_scores.append(0)
                 neg_scores.append(0)
-        self.features.append(('pos_score_sum', sum(pos_scores)))
-        self.features.append(('neg_score_sum', sum(neg_scores)))
+        # self.features.append(('pos_score_sum', sum(pos_scores))) # no 59,6
+        # self.features.append(('neg_score_sum', sum(neg_scores))) # no 59,699
         self.features.append(('adj_max', max(adj_scores)))
         self.features.append(('adv_max', max(adv_scores)))
         gap = abs((sum(pos_scores) - sum(neg_scores)))
@@ -124,10 +124,10 @@ class Headline:
         # Compute average stop word count
         stop_words = [1 for token in self.doc if token.is_stop is True]
         aswc = sum(stop_words) / len(word_lengths)
-        self.features.append(('average_stop_word_count', aswc))
+#        self.features.append(('average_stop_word_count', aswc)) # no
         # Compute number of long words (> 5 characters)
         nlw = [wl for wl in word_lengths if wl > 6]
-        self.features.append(('number_of_long_words', len(nlw)))
+#        self.features.append(('number_of_long_words', len(nlw))) # no
 
     def _semantic_features(self):
         n_syn_per_token = []
@@ -145,9 +145,9 @@ class Headline:
         # Compute number of quotations, don't normalize -> just one sentence
         quotations = [1 for token in self.doc if token.is_quote is True]
         num_quotes = sum(quotations) / 2
-        self.features.append(('number_quotations', num_quotes))
+        self.features.append(('number_quotations', num_quotes)) # noo
         # Compute number of characters withour whitespace
         characters = [len(token.text) for token in self.doc]
         num_chars = sum(characters)
-        self.features.append(('number_characters', num_chars))
+        self.features.append(('number_characters', num_chars)) # no!
 

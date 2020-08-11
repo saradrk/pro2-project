@@ -115,6 +115,7 @@ class Classifier:
                     for row in csv_reader:
                         if row_counter == 0:
                             eval_features += row[2:]
+                            logging.info(eval_features)
                             row_counter += 1
                             continue
                         rel_ind = self._get_relevant_indices(all_features,
