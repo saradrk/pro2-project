@@ -27,7 +27,8 @@ class Classifier:
         Compute class statistics from single statistics in csv file format
         """
         # Test if model has been trained already
-        if os.path.exists(self.single_stats):
+        if (os.path.exists(self.single_stats) and
+                os.path.getsize(self.single_stats) != 0):
             logging.info('Model is trained and ready to predict')
         # Sum up the figures from each feature in the single statistics for
         # the sarcastic and nonsarcastic class and divide by class count to
@@ -81,10 +82,12 @@ class Classifier:
         csv_file.close()
 
     def predict(self, test_data, test_stats_file, pred_csv):
-        if os.path.exists(test_stats_file):
+        if (os.path.exists(test_stats_file) and
+                os.path.getsize(test_stats_file) != 0):
             logging.info('Statistics for prediction already computed. '
                          'Check if predictions already exist...')
-            if os.path.exists(pred_csv):
+            if (os.path.exists(pred_csv) and
+                    os.path.getsize(pred_csv) != 0):
                 logging.info('Predictions found in {}'.format(pred_csv))
                 return
             else:
@@ -95,7 +98,8 @@ class Classifier:
             TestData.compute_single_statistics()
             self.add_csv_entry(pred_csv, ['headline', 'gold', 'prediction'])
             logging.info('Start predicting...')
-        if os.path.exists(self.class_stats):
+        if (os.path.exists(self.class_stats) and
+                os.path.getsize(self.class_stats) != 0):
             with open(self.class_stats) as csv_file:
                 csv_reader = csv.reader(csv_file)
                 for row in csv_reader:
@@ -137,7 +141,9 @@ class Classifier:
                                                       row[1],
                                                       prediction]
                                            )
-    
+        else:
+            logging.info('Model is not trained')
+
     def _get_relevant_indices(self, all_features, rel_features):
         feature_indeces = []
         for rel_f in rel_features:
