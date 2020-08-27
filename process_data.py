@@ -24,9 +24,13 @@ class HeadlineData:
         self.out_csv = out_csv
 
     def _process_file(self, filename):
-        """Read data from file
-        Add Tweet objects to tweets attribute if the data is valid,
+        """Read and process data from file.
+
+        Add Headline objects to data attribute if the data is valid,
         ignore otherwise
+
+        Args:
+            filename (str): name of file containing data
         """
         try:
             with open(filename, 'r') as file:
@@ -43,14 +47,17 @@ class HeadlineData:
             logging.info('{} entries processed'.format(entry_count))
 
     def _process_headline(self, data_entry):
-        """Create and return Headline object of data entry with ID number
-        Tokenize, POS-tag, lemmatize headline string
+        """Create and return Headline object of data entry.
+
+        Args:
+            data_entry (str): headline data entry in JSON format
         """
         json_entry = json.loads(data_entry)
         doc = self.nlp(json_entry['headline'])
         return Headline(json_entry, doc)
 
     def compute_single_statistics(self):
+        """Compute feature statistics for every data entry."""
         with open(self.out_csv, mode='a+') as out_csv:
             writer = csv.writer(out_csv)
             line_counter = 0

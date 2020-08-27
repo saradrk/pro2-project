@@ -23,8 +23,9 @@ class Classifier:
 
     def train_model(self):
         """Create classification model as csv file containing statistics
-        for each class
-        Compute class statistics from single statistics in csv file format
+        for each class.
+        Compute and save single statistics for data entries as csv file.
+        Compute and save class statistics from single statistics as csv file.
         """
         # Test if model has been trained already
         if (os.path.exists(self.single_stats) and
@@ -75,13 +76,26 @@ class Classifier:
             self.add_csv_entry(self.class_stats, stats_1)
 
     def add_csv_entry(self, csv_file, new_entry):
-        """Add entry to csv file"""
+        """Add entry to csv file.
+
+        Args:
+            csv_file (str): name of csv file entry should be added to
+            new_entry (list): list containing column entries for new csv row
+        """
         with open(csv_file, mode='a+') as csv_file:
             writer = csv.writer(csv_file)
             writer.writerow(new_entry)
         csv_file.close()
 
     def predict(self, test_data, test_stats_file, pred_csv):
+        """Classify data based on previously trained model.
+
+        Args:
+            test_data (str): name of csv file containing data to be classified
+            test_stats_file (str): name of csv file to save single statistics
+                of data to be classified
+            pred_csv (str): name of csv file to save predictions in
+        """
         if (os.path.exists(test_stats_file) and
                 os.path.getsize(test_stats_file) != 0):
             logging.info('Statistics for prediction already computed. '
@@ -157,6 +171,12 @@ class Classifier:
         return feature_indeces
 
     def _distance(self, trained_values, test_values):
+        """Compute and return feature distance.
+
+        Args:
+            trained_values (list): list of feature statistics of a class
+            test_values (list): list of feature statistics of a data instance
+        """
         assert(len(trained_values) == len(test_values))
         dist = 0
         for i in range(len(trained_values)):

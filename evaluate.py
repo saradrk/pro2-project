@@ -17,6 +17,7 @@ class Evaluator:
         self.predictions = prediction_csv
 
     def accuracy(self):
+        """Return prediction accuracy of classified data."""
         if os.path.exists(self.predictions):
             with open(self.predictions) as predictions:
                 csv_reader = csv.reader(predictions)

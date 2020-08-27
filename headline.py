@@ -20,23 +20,33 @@ class Headline:
         self._setup_feature_list()
 
     def __str__(self):
+        """Return headline as string."""
         return self.headline
 
     def __len__(self):
+        """Return number of characters in headline."""
         return len(self.headline)
 
     def __contains__(self, token):
+        """Return True if headline contains token, False otherwise.
+
+        Args:
+            token (str): word that should be checked for occurence in headline
+        """
         return token in self._tokens()
 
     def _tokens(self):
+        """Return list of tokens."""
         tokens = [token.text for token in self.doc]
         return tokens
 
     def _lemmas(self):
+        """Return list of lemmas."""
         lemmas = [token.lemma_ for token in self.doc]
         return lemmas
 
     def _setup_feature_list(self):
+        """Call feature methods to fill features attribute list."""
         self.features.extend([('headline', self.headline),
                               ('is_sarcastic', self.sarcasm)])
         self._word_based_features()
@@ -46,6 +56,7 @@ class Headline:
         self._sentiment_feature()
 
     def _syntactic_features(self):
+        """Add features of syntactic nature to features attribute."""
         verbs = [1 for token in self.doc if token.pos_ == 'VERB']
         n_verbs = sum(verbs)
         verb_ratio = len(verbs) / len(self._tokens())
@@ -68,6 +79,7 @@ class Headline:
         self.features.append(('adjective_ratio', adjective_ratio))
 
     def _sentiment_feature(self):
+        """Add sentiment features to features attribute."""
         # Compute average named entity count
         entities = [1 if token.ent_type > 0 else 0 for token in self.doc]
         anec = sum(entities) / len(entities)
@@ -105,6 +117,7 @@ class Headline:
         self.features.append(('pos_neg_gap', gap))
 
     def _pos_for_senti_synset(self, pos_tag):
+        """Return spacy POS tag converted to matching sentiwordnet POS tag."""
         if pos_tag == 'NOUN':
             return 'n'
         elif pos_tag == 'VERB':
@@ -117,6 +130,7 @@ class Headline:
             return None
 
     def _word_based_features(self):
+        """Add word based features to features attribute."""
         # Compute average word length
         word_lengths = [len(token.text) for token in self.doc]
         awl = (sum(word_lengths) / len(word_lengths))
