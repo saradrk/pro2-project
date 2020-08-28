@@ -14,8 +14,30 @@ logging.basicConfig(filename='process_data.log', level=logging.INFO,
 
 
 class HeadlineData:
+    """Class for processing and feature extraction of headline data.
+
+    Attributes:
+        data (list): list with headline objects constructed of data entries
+        model (str): spacy language model
+        nlp (spacy Language object): spacy Language object instansiated with
+            language model
+        features (generator): generator of feature lists for data entries
+        out_csv (str): name of csv file for feature statistics of the data
+
+    Methods:
+        compute_single_statistics(): compute feature statistics of the data
+            and save as csv file
+    """
 
     def __init__(self, data_file, out_csv, language_model='en_core_web_sm'):
+        """Constructor for HeadlineData class.
+
+        Args:
+            data_file (str): name of file containing headline data
+            out_csv (str): name of csv file for feature statistics of the data
+            language_modal (str): spacy language model (default is
+                                                        en_core_web_sm)
+        """
         self.data = []
         self.model = language_model
         self.nlp = spacy.load(language_model)
@@ -53,8 +75,10 @@ class HeadlineData:
             data_entry (str): headline data entry in JSON format
         """
         json_entry = json.loads(data_entry)
-        doc = self.nlp(json_entry['headline'])
-        return Headline(json_entry, doc)
+        is_sarcastic = json_entry['is_sarcastic']
+        headline = json_entry['headline']
+        doc = self.nlp(headline)
+        return Headline(is_sarcastic, headline, doc)
 
     def compute_single_statistics(self):
         """Compute feature statistics for every data entry."""

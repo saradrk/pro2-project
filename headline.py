@@ -3,18 +3,34 @@
 # Programmierung II: Projekt
 # Read and process data: Class for headline objects
 
-
-from nltk.corpus import wordnet as wn
 from nltk.corpus import sentiwordnet as swn
-# from nltk.sentiment.vader import SentimentIntensityAnalyzer as SIA
 
 
 class Headline:
+    """Class for computing linguistic features of a newspaper headline.
 
-    def __init__(self, headline_json, doc_obj):
-        self.sarcasm = headline_json['is_sarcastic']
-        self.headline = headline_json['headline']
-        self.link = headline_json['article_link']
+    Attributes:
+        is_sarcastic (int): 1 if sarcastic 0 otherwise
+        headline (str): the newspaper headline
+        link (str): article link
+        doc (object of spacy Doc class): Doc object instantiated with headline
+        features (list): list of linguistic features
+
+    No public methods
+    """
+
+    def __init__(self, is_sarcastic, headline, doc_obj, link=None):
+        """Constructor for Headline class.
+
+        Args:
+            is_sarcastic (int): 1 if sarcastic 0 otherwise
+            headline (str): the newspaper headline
+            doc_abj (spacy Doc object): Doc object instantiated with headline
+            link (str): article link (optional)
+        """
+        self.is_sarcastic = is_sarcastic
+        self.headline = headline
+        self.link = link
         self.doc = doc_obj
         self.features = []
         self._setup_feature_list()
@@ -48,58 +64,54 @@ class Headline:
     def _setup_feature_list(self):
         """Call feature methods to fill features attribute list."""
         self.features.extend([('headline', self.headline),
-                              ('is_sarcastic', self.sarcasm)])
-        self._word_based_features()
-        self._syntactic_features()
-        # self._semantic_features()
-        # self._char_based_features()
-        self._sentiment_feature()
+                              ('is_sarcastic', self.is_sarcastic)])
+        self._extract_word_based_features()
+        self._extract_syntactic_features()
+        self._extract_sentiment_feature()
 
-    def _syntactic_features(self):
+    def _extract_word_based_features(self):
+        """Add word based features to features attribute."""
+        # Compute and add average word length
+        word_lengths = [len(token.text) for token in self.doc]
+        awl = (sum(word_lengths) / len(word_lengths))
+        self.features.append(('average_word_length', awl))
+
+    def _extract_syntactic_features(self):
         """Add features of syntactic nature to features attribute."""
-        verbs = [1 for token in self.doc if token.pos_ == 'VERB']
-        n_verbs = sum(verbs)
-        verb_ratio = len(verbs) / len(self._tokens())
-        # self.features.append(('n_verbs', n_verbs))
-        # self.features.append(('verb_ratio', verb_ratio))
-        nouns = [1 for token in self.doc if token.pos_ == 'NOUN']
-        n_nouns = sum(nouns)
-        noun_ratio = len(nouns) / len(self._tokens())
-        # self.features.append(('n_nouns', n_nouns))
-        # self.features.append(('noun_ratio', noun_ratio))
-        adverbs = [1 for token in self.doc if token.pos_ == 'ADV']
-        n_adverbs = sum(adverbs)
-        adverb_ratio = len(adverbs) / len(self._tokens())
-        # self.features.append(('n_adverbs', n_adverbs))
-        # self.features.append(('adverb_ratio', adverb_ratio))
         adjectives = [1 for token in self.doc if token.pos_ == 'ADJ']
+        # total number of adjectives
         n_adjectives = sum(adjectives)
+        # proportion of adjectives
         adjective_ratio = len(adjectives) / len(self._tokens())
         self.features.append(('n_adjectives', n_adjectives))
         self.features.append(('adjective_ratio', adjective_ratio))
 
-    def _sentiment_feature(self):
+    def _extract_sentiment_feature(self):
         """Add sentiment features to features attribute."""
-        # Compute average named entity count
-        entities = [1 if token.ent_type > 0 else 0 for token in self.doc]
-        anec = sum(entities) / len(entities)
- #       self.features.append(('average_named_entities', anec)) # + avl 59,699
         # Compute polarity scores
-        pos_scores = []
-        neg_scores = []
-        adj_scores = [0]
-        adv_scores = [0]
+        pos_scores = []  # positive polarity scores
+        neg_scores = []  # negative polarity scores
+        adj_scores = [0]  # polarity scores of adjectives
+        adv_scores = [0]  # polarity scores of adverbs
         for token in self.doc:
+            # get POS tag used by sentiwordnet
             pos = self._pos_for_senti_synset(token.pos_)
+            # if matching POS tag exists get polarity score with lemma of the
+            # token, POS tag and 01 (calls for most common usage of the word)
+            # append 0 to score lists otherwise
             if pos is not None:
                 senti_input = f'{token.lemma_}.{pos}.01'
+                # add positive and negative scores to lists if entry exists
+                # append 0 otherwise
                 try:
                     lemma_scores = swn.senti_synset(senti_input)
                     pos_scores.append(lemma_scores.pos_score())
                     neg_scores.append(lemma_scores.neg_score())
+                    # if token is an adjective add scores to list
                     if pos == 'a':
                         adj_scores.append(lemma_scores.pos_score())
                         adj_scores.append(lemma_scores.neg_score())
+                    # if token is an adverb add scores to list
                     elif pos == 'r':
                         adv_scores.append(lemma_scores.pos_score())
                         adv_scores.append(lemma_scores.neg_score())
@@ -109,15 +121,20 @@ class Headline:
             else:
                 pos_scores.append(0)
                 neg_scores.append(0)
-        # self.features.append(('pos_score_sum', sum(pos_scores))) # no 59,6
-        # self.features.append(('neg_score_sum', sum(neg_scores))) # no 59,699
+        # Add highest polarity score of adjectives
         self.features.append(('adj_max', max(adj_scores)))
+        # Add highest polarity score of adverbs
         self.features.append(('adv_max', max(adv_scores)))
+        # gap between positive and negative scores
         gap = abs((sum(pos_scores) - sum(neg_scores)))
         self.features.append(('pos_neg_gap', gap))
 
     def _pos_for_senti_synset(self, pos_tag):
-        """Return spacy POS tag converted to matching sentiwordnet POS tag."""
+        """Return matching sentiwordnet POS tag to spacy POS tag.
+
+        Args:
+            pos_tag (str): POS tag from spacy
+        """
         if pos_tag == 'NOUN':
             return 'n'
         elif pos_tag == 'VERB':
@@ -128,40 +145,3 @@ class Headline:
             return 'r'
         else:
             return None
-
-    def _word_based_features(self):
-        """Add word based features to features attribute."""
-        # Compute average word length
-        word_lengths = [len(token.text) for token in self.doc]
-        awl = (sum(word_lengths) / len(word_lengths))
-        self.features.append(('average_word_length', awl))
-        # Compute average stop word count
-        stop_words = [1 for token in self.doc if token.is_stop is True]
-        aswc = sum(stop_words) / len(word_lengths)
-#        self.features.append(('average_stop_word_count', aswc)) # no
-        # Compute number of long words (> 5 characters)
-        nlw = [wl for wl in word_lengths if wl > 6]
-#        self.features.append(('number_of_long_words', len(nlw))) # no
-
-    def _semantic_features(self):
-        n_syn_per_token = []
-        for lemma in self._lemmas():
-            synonyms = 0
-            for syn in wn.synsets(lemma):
-                synonyms += 1
-            n_syn_per_token.append(synonyms)
-        max_synset = max(n_syn_per_token)
-        synset_mean = sum(n_syn_per_token) / len(self._lemmas())
-        self.features.append(('max_synset', max_synset))
-        self.features.append(('synset_mean', synset_mean))
-
-    def _char_based_features(self):
-        # Compute number of quotations, don't normalize -> just one sentence
-        quotations = [1 for token in self.doc if token.is_quote is True]
-        num_quotes = sum(quotations) / 2
-        self.features.append(('number_quotations', num_quotes)) # noo
-        # Compute number of characters withour whitespace
-        characters = [len(token.text) for token in self.doc]
-        num_chars = sum(characters)
-        self.features.append(('number_characters', num_chars)) # no!
-
