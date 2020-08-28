@@ -126,89 +126,113 @@ class Classifier:
             out_csv (str): name of csv file to save predictions in (default is
                 Predictions.csv)
         """
-        # If single statistics of the data to predict already
-        # exists start predicting (if predictions already made log info)
-        # compute single statistics and predict otherwise
         pred_data = os.path.join('Data', pred_datafile)
         single_stats_csv = os.path.join('csv', pred_single_stats_csv)
         pred_csv = os.path.join('csv', out_csv)
-        if (os.path.exists(single_stats_csv) and
-                os.path.getsize(single_stats_csv) != 0):
+        self._set_up_prediction(pred_data, single_stats_csv, pred_csv)
+        # Start predicting if model has been trained
+        try:
+            features, ns_stats, s_stats = self._get_labels_and_class_stats()
+            with open(single_stats_csv) as stats_csv:
+                csv_reader = csv.reader(stats_csv)
+                row_counter = 0
+                eval_features = []
+                for row in csv_reader:
+                    # first row contains feature labels of prediction data
+                    if row_counter == 0:
+                        eval_features += row[2:]
+                        # get indices of relevant features for prediction
+                        # in case more features were extracted for
+                        # training data or features of prediction and
+                        # training data are in different order
+                        rel_ind = self._get_relevant_indices(features,
+                                                             eval_features)
+                        # extract relevant class statistics
+                        nonsarcastic_stats = [ns_stats[i] for i in rel_ind]
+                        sarcastic_stats = [s_stats[i] for i in rel_ind]
+                        # log features of prediction data
+                        logging.info('Features used for prediction: '
+                                     '{}'.format(eval_features))
+                        row_counter += 1
+                        continue
+                    # compute distances between statistics of the
+                    # prediction data entry and class entries
+                    stats_to_predict = row[2:]
+                    nonsarcastic_dist = self._distance(nonsarcastic_stats,
+                                                       stats_to_predict)
+                    sarcastic_dist = self._distance(sarcastic_stats,
+                                                    stats_to_predict)
+                    # Classify as the class with smaller distance
+                    # if equal diastance classify as irony
+                    if nonsarcastic_dist < sarcastic_dist:
+                        prediction = 0
+                    elif nonsarcastic_dist > sarcastic_dist:
+                        prediction = 1
+                    else:
+                        prediction = 1
+                    self._add_csv_entry(pred_csv, [row[0],
+                                                   row[1],
+                                                   prediction
+                                                   ]
+                                        )
+            logging.info(f'Prediction completed. Predictions in {pred_csv}')
+        except Exception as e:
+            logging.info(e)
+            logging.error('Model is not trained')
+
+    def _set_up_prediction(self,
+                           pred_data_path,
+                           single_stats_path,
+                           pred_out_path):
+        """Set up prediction process.
+
+        Args:
+            pred_data_path (str): Path todata to predict
+            single_stats_path (str): Path to csv file to save single stats
+            pred_out_path (str): Path to prediction output file
+        """
+        # If single statistics of the data to predict already
+        # exists start predicting (if predictions already made log path info)
+        # compute single statistics otherwise
+        if (os.path.exists(single_stats_path) and
+                os.path.getsize(single_stats_path) != 0):
             logging.info('Statistics for prediction already computed. '
                          'Check if predictions already exist...')
-            if (os.path.exists(pred_csv) and
-                    os.path.getsize(pred_csv) != 0):
-                logging.info('Predictions found in {}'.format(pred_csv))
+            if (os.path.exists(pred_out_path) and
+                    os.path.getsize(pred_out_path) != 0):
+                logging.info('Predictions found in {}'.format(pred_out_path))
                 return None
             else:
                 logging.info('No predictions found. Start predicting...')
         else:
             logging.info('Start predicting...')
-            PredictionData = HeadlineData(pred_data)
-            PredictionData.compute_single_statistics(single_stats_csv)
-            self._add_csv_entry(pred_csv, ['headline', 'gold', 'prediction'])
-        # Start predicting if model has been trained
-        if (os.path.exists(self.class_stats) and
-                os.path.getsize(self.class_stats) != 0):
-            with open(self.class_stats) as csv_file:
-                csv_reader = csv.reader(csv_file)
-                for row in csv_reader:
-                    # first row contains feature labels of training data
-                    if row[0] == 'is_sarcastic':
-                        all_features = row[1:]
-                    # is_sarcastic == 0: non sarcastic statistics
-                    elif int(row[0]) == 0:
-                        ns_stats = row[1:]
-                    # is_sarcastic == 1: sarcastic statistics
-                    elif int(row[0]) == 1:
-                        s_stats = row[1:]
-                    else:
-                        logging.warning('Wrong entries in class statistics')
-                csv_file.close()
-                with open(single_stats_csv) as stats_csv:
-                    csv_reader = csv.reader(stats_csv)
-                    row_counter = 0
-                    eval_features = []
-                    for row in csv_reader:
-                        # first row contains feature labels of prediction data
-                        if row_counter == 0:
-                            eval_features += row[2:]
-                            # get indices of relevant features for prediction
-                            # in case more features were extracted for
-                            # training data or features of prediction and
-                            # training data are in different order
-                            rel_ind = self._get_relevant_indices(all_features,
-                                                                 eval_features)
-                            # extract relevant class statistics
-                            nonsarcastic_stats = [ns_stats[i] for i in rel_ind]
-                            sarcastic_stats = [s_stats[i] for i in rel_ind]
-                            # log features of prediction data
-                            logging.info('Features used for prediction: '
-                                         '{}'.format(eval_features))
-                            row_counter += 1
-                            continue
-                        # compute distances between statistics of the
-                        # prediction data entry and class entries
-                        stats_to_predict = row[2:]
-                        nonsarcastic_dist = self._distance(nonsarcastic_stats,
-                                                           stats_to_predict)
-                        sarcastic_dist = self._distance(sarcastic_stats,
-                                                        stats_to_predict)
-                        # Classify as the class with smaller distance
-                        # if equal diastance classify as irony
-                        if nonsarcastic_dist < sarcastic_dist:
-                            prediction = 0
-                        elif nonsarcastic_dist > sarcastic_dist:
-                            prediction = 1
-                        else:
-                            prediction = 1
-                        self._add_csv_entry(pred_csv, [row[0],
-                                                       row[1],
-                                                       prediction
-                                                       ]
-                                            )
-        else:
-            logging.error('Model is not trained')
+            PredictionData = HeadlineData(pred_data_path)
+            PredictionData.compute_single_statistics(single_stats_path)
+            self._add_csv_entry(pred_out_path, ['headline',
+                                                'gold',
+                                                'prediction'
+                                                ]
+                                )
+
+    def _get_labels_and_class_stats(self):
+        """Return list of feature names of the training data and
+        sarcastic and nonsarcastic statistics."""
+        with open(self.class_stats) as csv_file:
+            csv_reader = csv.reader(csv_file)
+            for row in csv_reader:
+                # first row contains feature labels of training data
+                if row[0] == 'is_sarcastic':
+                    all_features = row[1:]
+                # is_sarcastic == 0: non sarcastic statistics
+                elif int(row[0]) == 0:
+                    nonsarcastic_stats = row[1:]
+                # is_sarcastic == 1: sarcastic statistics
+                elif int(row[0]) == 1:
+                    sarcastic_stats = row[1:]
+                else:
+                    logging.warning('Wrong entries in class statistics')
+            csv_file.close()
+            return all_features, nonsarcastic_stats, sarcastic_stats
 
     def _get_relevant_indices(self, all_features, rel_features):
         """Return list of indices of the features relevant for classification.
