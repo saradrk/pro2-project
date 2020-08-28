@@ -159,19 +159,20 @@ class Classifier:
                         # first row contains feature labels of prediction data
                         if row_counter == 0:
                             eval_features += row[2:]
+                            # get indices of relevant features for prediction
+                            # in case more features were extracted for
+                            # training data or features of prediction and
+                            # training data are in different order
+                            rel_ind = self._get_relevant_indices(all_features,
+                                                                 eval_features)
+                            # extract relevant class statistics
+                            nonsarcastic_stats = [ns_stats[i] for i in rel_ind]
+                            sarcastic_stats = [s_stats[i] for i in rel_ind]
                             # log features of prediction data
-                            logging.info(eval_features)
+                            logging.info('Features used for prediction: '
+                                         '{}'.format(eval_features))
                             row_counter += 1
                             continue
-                        # get indices of relevant features for prediction
-                        # in case more features were extracted for
-                        # training data or features of prediction and
-                        # training data are in different order
-                        rel_ind = self._get_relevant_indices(all_features,
-                                                             eval_features)
-                        # extract relevant class statistics
-                        nonsarcastic_stats = [ns_stats[i] for i in rel_ind]
-                        sarcastic_stats = [s_stats[i] for i in rel_ind]
                         # compute distances between statistics of the
                         # prediction data entry and class entries
                         stats_to_predict = row[2:]
