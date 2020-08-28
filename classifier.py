@@ -248,8 +248,9 @@ class Classifier:
         Args:
             pred_csv (str): file name of csv file containing predictions
         """
-        if os.path.exists(self.pred_csv):
-            with open(self.pred_csv) as predictions:
+        pred_csv = os.path.join('csv', pred_csv)
+        if os.path.exists(pred_csv):
+            with open(pred_csv) as predictions:
                 csv_reader = csv.reader(predictions)
                 total_pred = -1
                 correct_pred = 0
