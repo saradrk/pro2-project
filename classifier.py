@@ -59,6 +59,7 @@ class Classifier:
         # compute the mean figure for each feature
         # Create csv file to save class statistics
         else:
+            logging.info('Start training...')
             TrainingData = HeadlineData(self.datafile)
             TrainingData.compute_single_statistics(self.single_stats)
             count_0 = 0
@@ -97,6 +98,7 @@ class Classifier:
             stats_1 = [1] + [(class_figs[f][1]/count_1) for f in class_figs]
             self._add_csv_entry(self.class_stats, stats_0)
             self._add_csv_entry(self.class_stats, stats_1)
+            logging.info('Training completed.')
 
     def _add_csv_entry(self, csv_file, new_entry):
         """Add entry to csv file.
@@ -141,11 +143,10 @@ class Classifier:
             else:
                 logging.info('No predictions found. Start predicting...')
         else:
-            logging.info('Computing statistics for prediction data...')
+            logging.info('Start predicting...')
             PredictionData = HeadlineData(pred_data)
             PredictionData.compute_single_statistics(single_stats_csv)
             self._add_csv_entry(pred_csv, ['headline', 'gold', 'prediction'])
-            logging.info('Start predicting...')
         # Start predicting if model has been trained
         if (os.path.exists(self.class_stats) and
                 os.path.getsize(self.class_stats) != 0):
@@ -162,7 +163,7 @@ class Classifier:
                     elif int(row[0]) == 1:
                         s_stats = row[1:]
                     else:
-                        logging.info('Wrong entries in class statistics')
+                        logging.warning('Wrong entries in class statistics')
                 csv_file.close()
                 with open(single_stats_csv) as stats_csv:
                     csv_reader = csv.reader(stats_csv)
@@ -206,7 +207,7 @@ class Classifier:
                                                        ]
                                             )
         else:
-            logging.info('Model is not trained')
+            logging.error('Model is not trained')
 
     def _get_relevant_indices(self, all_features, rel_features):
         """Return list of indices of the features relevant for classification.
@@ -250,6 +251,7 @@ class Classifier:
         """
         pred_csv = os.path.join('csv', pred_csv)
         if os.path.exists(pred_csv):
+            logging.info('Computing accuracy...')
             with open(pred_csv) as predictions:
                 csv_reader = csv.reader(predictions)
                 total_pred = -1

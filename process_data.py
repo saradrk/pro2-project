@@ -22,7 +22,7 @@ class HeadlineData:
         nlp (spacy Language object): spacy Language object instansiated with
             language model
         features (generator): generator of feature lists for data entries
-        out_csv (str): name of csv file for feature statistics of the data
+        data_size (int): Total count of data entries
 
     Methods:
         compute_single_statistics(): compute feature statistics of the data
@@ -39,6 +39,7 @@ class HeadlineData:
                                                         en_core_web_sm)
         """
         self.data = []
+        self.data_size = 0
         self.model = language_model
         self.nlp = spacy.load(language_model)
         self._process_file(data_file)
@@ -55,7 +56,7 @@ class HeadlineData:
         """
         try:
             with open(filename, 'r') as file:
-                logging.info('Processing corpus...')
+                logging.info('Processing data...')
                 entry_count = 0
                 for entry in file:
                     if len(entry) > 0:
@@ -65,6 +66,7 @@ class HeadlineData:
             logging.info(e)
         else:
             file.close()
+            self.data_size += entry_count
             logging.info('{} entries processed'.format(entry_count))
 
     def _process_headline(self, data_entry):
@@ -84,6 +86,8 @@ class HeadlineData:
         with open(out_csv, mode='a+') as out:
             writer = csv.writer(out)
             line_counter = 0
+            logging.info('Computing single statistics '
+                         'of {self.data_size} data entries...')
             for feature_list in self.features:
                 if line_counter == 0:
                     header = [feature[0] for feature in feature_list]

@@ -25,7 +25,7 @@ class SplitData:
                     if len(entry) > 0:
                         self.data.append(entry)
         except Exception as e:
-            logging.info(e)
+            logging.warning(e)
         finally:
             data.close()
 
