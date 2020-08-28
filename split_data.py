@@ -41,7 +41,7 @@ class SplitData:
             for entry in data:
                 if len(entry) > 0:
                     self.data.append(entry)
-        self.data_file.close()
+        data.close()
 
     def train_test_val_split(self,
                              train_filename,
@@ -59,7 +59,7 @@ class SplitData:
         train_file = os.path.join('Data', train_filename)
         test_file = os.path.join('Data', test_filename)
         val_file = os.path.join('Data', val_filename)
-        logging.info(len(self.data))
+        logging.info(f'Size of data: {len(self.data)} entries')
         random.seed(12)
         # Create list with randomly shuffled indices for
         # randomly distributing the data
@@ -75,7 +75,7 @@ class SplitData:
         # Add random 70% of data entries to training file using first 70% of
         # random indices, use next 20% of random indices for test and
         # remaining approximately 10% for validation file
-        if open(train_file, 'r'):
+        if os.path.exists(train_file):
             logging.info('Corpus has already been split')
         else:
             for i in range(len(self.data)):
@@ -97,7 +97,7 @@ class SplitData:
 
 
 if __name__ == '__main__':
-    Data = SplitData('./Data/Sarcasm_Headlines_Dataset_v2.json')
-    Data.train_test_val_split('./Data/Sarcasm_Headlines_Dataset_v2_train.json',
-                              './Data/Sarcasm_Headlines_Dataset_v2_test.json',
-                              './Data/Sarcasm_Headlines_Dataset_v2_val.json')
+    Data = SplitData('Sarcasm_Headlines_Dataset_v2.json')
+    Data.train_test_val_split('Sarcasm_Headlines_Dataset_v2_train.json',
+                              'Sarcasm_Headlines_Dataset_v2_test.json',
+                              'Sarcasm_Headlines_Dataset_v2_val.json')
