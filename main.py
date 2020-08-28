@@ -13,13 +13,9 @@ logging.basicConfig(filename='process_data.log', level=logging.INFO,
 
 
 def main():
-    IronyClassifier = Classifier('./csv/Train_single_stats.csv',
-                                  './csv/Train_class_stats.csv',
-                                  './Data/Sarcasm_Headlines_Dataset_v2_train.json')
+    IronyClassifier = Classifier('Sarcasm_Headlines_Dataset_v2_train.json')
     IronyClassifier.train_model()
-    IronyClassifier.predict('./Data/Sarcasm_Headlines_Dataset_v2_val.json',
-                            './csv/Val_single_stats.csv',
-                            './csv/Val_Predictions.csv')
+    IronyClassifier.predict('Sarcasm_Headlines_Dataset_v2_val.json')
     Eval = Evaluator('./csv/Val_Predictions.csv')
     # IronyClassifier = Classifier('./csv/mini_single_stats.csv',
     #                              './csv/mini_class_stats.csv',
