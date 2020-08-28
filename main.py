@@ -7,7 +7,7 @@ from classifier import Classifier
 import time
 import logging
 
-logging.basicConfig(filename='process_data.log', level=logging.INFO,
+logging.basicConfig(filename='irony_classifier.log', level=logging.INFO,
                     format='%(asctime)s %(message)s')
 
 

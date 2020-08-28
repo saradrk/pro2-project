@@ -6,34 +6,59 @@
 
 import random
 import logging
+import os
 
-logging.basicConfig(filename='split_data.log', level=logging.INFO,
+logging.basicConfig(filename='irony_classifier.log', level=logging.INFO,
                     format='%(asctime)s %(message)s')
 
 
 class SplitData:
-    """Class for splitting data file into
-    70% train, 20% test and 10% validation set
+    """Class for splitting a data file into training/testing/validation set.
+
+    Attributes:
+        data_file (str): name of data file
+        data (list): list of data entries
+
+    Methods:
+        train_test_val_split(train_file, test_file, val_file): split data
     """
 
     def __init__(self, data_file):
-        """Read data, save entries in list"""
+        """Constructor for SplitData class
+
+        Args:
+            data_file (str): name of file containing the data
+        """
+        self.data_file = os.path.join('Data', data_file)
         self.data = []
         try:
-            with open(data_file, 'r') as data:
-                for entry in data:
-                    if len(entry) > 0:
-                        self.data.append(entry)
+            self._read_data()
         except Exception as e:
-            logging.warning(e)
-        finally:
-            data.close()
+            logging.critical(e)
 
-    def train_test_val_split(self, train_file, test_file, val_file):
-        """Split data into training/test/validation set (70%/20%/10%)
-        Save data in seperate JSON files if not already existend
-        arguments: file names
+    def _read_data(self):
+        with open(self.data_file, 'r') as data:
+            for entry in data:
+                if len(entry) > 0:
+                    self.data.append(entry)
+        self.data_file.close()
+
+    def train_test_val_split(self,
+                             train_filename,
+                             test_filename,
+                             val_filename):
+        """Split data into training/test/validation set (70%/20%/10%).
+
+        Save split sets as seperate JSON files.
+
+        Args:
+            train_filename (str): file name for training data
+            test_filename (str): file name for test data
+            val_filename (str): file name for validation data
         """
+        train_file = os.path.join('Data', train_filename)
+        test_file = os.path.join('Data', test_filename)
+        val_file = os.path.join('Data', val_filename)
         logging.info(len(self.data))
         random.seed(12)
         # Create list with randomly shuffled indices for

@@ -10,7 +10,7 @@ import os
 import logging
 import time
 
-logging.basicConfig(filename='classifier.log', level=logging.INFO,
+logging.basicConfig(filename='irony_classifier.log', level=logging.INFO,
                     format='%(asctime)s %(message)s')
 
 
@@ -25,6 +25,7 @@ class Classifier:
     Methods:
         train_model(): compute class statistics for prediction
         predict(test_data, test_stats_file, pred_csv): classify unknown data
+        accuracy(pred_csv): compute prediction accuracy of classifier
     """
 
     def __init__(self,
@@ -100,18 +101,6 @@ class Classifier:
             self._add_csv_entry(self.class_stats, stats_1)
             logging.info('Training completed.')
 
-    def _add_csv_entry(self, csv_file, new_entry):
-        """Add entry to csv file.
-
-        Args:
-            csv_file (str): name of csv file entry should be added to
-            new_entry (list): list containing column entries for new csv row
-        """
-        with open(csv_file, mode='a+') as csv_file:
-            writer = csv.writer(csv_file)
-            writer.writerow(new_entry)
-        csv_file.close()
-
     def predict(self,
                 pred_datafile,
                 pred_single_stats_csv='Single_stats_pred.csv',
@@ -179,6 +168,45 @@ class Classifier:
         except Exception as e:
             logging.info(e)
             logging.error('Model is not trained')
+
+    def accuracy(self, pred_csv='Predictions.csv'):
+        """Return prediction accuracy of classified data.
+
+        Args:
+            pred_csv (str): file name of csv file containing predictions
+        """
+        pred_csv = os.path.join('csv', pred_csv)
+        if os.path.exists(pred_csv):
+            logging.info('Computing accuracy...')
+            with open(pred_csv) as predictions:
+                csv_reader = csv.reader(predictions)
+                total_pred = -1
+                correct_pred = 0
+                for pred in csv_reader:
+                    if total_pred == -1:
+                        total_pred += 1
+                    else:
+                        total_pred += 1
+                        if pred[1] == pred[2]:
+                            correct_pred += 1
+            accuracy = (correct_pred/total_pred)
+            logging.info(f'Computed accuracy: {accuracy}')
+            return accuracy
+        else:
+            logging.info('No predictions found to evaluate. '
+                         'Check file name or train model and predict first.')
+
+    def _add_csv_entry(self, csv_file, new_entry):
+        """Add entry to csv file.
+
+        Args:
+            csv_file (str): name of csv file entry should be added to
+            new_entry (list): list containing column entries for new csv row
+        """
+        with open(csv_file, mode='a+') as csv_file:
+            writer = csv.writer(csv_file)
+            writer.writerow(new_entry)
+        csv_file.close()
 
     def _set_up_prediction(self,
                            pred_data_path,
@@ -267,33 +295,6 @@ class Classifier:
             feature_dist = (float(trained_values[i]) - float(test_values[i]))
             dist += abs(feature_dist)
         return dist
-
-    def accuracy(self, pred_csv='Predictions.csv'):
-        """Return prediction accuracy of classified data.
-
-        Args:
-            pred_csv (str): file name of csv file containing predictions
-        """
-        pred_csv = os.path.join('csv', pred_csv)
-        if os.path.exists(pred_csv):
-            logging.info('Computing accuracy...')
-            with open(pred_csv) as predictions:
-                csv_reader = csv.reader(predictions)
-                total_pred = -1
-                correct_pred = 0
-                for pred in csv_reader:
-                    if total_pred == -1:
-                        total_pred += 1
-                    else:
-                        total_pred += 1
-                        if pred[1] == pred[2]:
-                            correct_pred += 1
-            accuracy = (correct_pred/total_pred)
-            logging.info(f'Computed accuracy: {accuracy}')
-            return accuracy
-        else:
-            logging.info('No predictions found to evaluate. '
-                         'Check file name or train model and predict first.')
 
 
 if __name__ == '__main__':
