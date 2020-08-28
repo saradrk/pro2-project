@@ -195,12 +195,13 @@ class Classifier:
                         sarcastic_dist = self._distance(sarcastic_stats,
                                                         stats_to_predict)
                         # Classify as the class with smaller distance
+                        # if equal diastance classify as irony
                         if nonsarcastic_dist < sarcastic_dist:
                             prediction = 0
                         elif nonsarcastic_dist > sarcastic_dist:
                             prediction = 1
                         else:
-                            prediction = 0.5
+                            prediction = 1
                         self._add_csv_entry(pred_csv, [row[0],
                                                        row[1],
                                                        prediction
