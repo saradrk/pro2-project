@@ -18,26 +18,31 @@ class Classifier:
     """Class for training a classifier for binary classification.
 
     Attributes:
+        datafile (str): name of csv file with headline data‚
         single_stats (str): name of csv file for single statistics of the data
         class_stats (str): name of csv file for class statistics
-        datafile (str): name of csv file with headline data
 
     Methods:
         train_model(): compute class statistics for prediction
         predict(test_data, test_stats_file, pred_csv): classify unknown data
     """
 
-    def __init__(self, single_stats_file, class_stats_file, datafile):
+    def __init__(self,
+                 datafile,
+                 single_stats_filename='Single_stats_train.csv',
+                 class_stats_filename='Class_stats_train.csv'):
         """Constructor for Classifier class.
 
         Args:
-            single_stats (str): name of csv file for single statistics
-            class_stats (str): name of csv file for class statistics
             datafile (str): name of csv file with headline data
+            single_stats (str): name of csv file for single statistics (default
+                is Single_stats_train.csv)
+            class_stats (str): name of csv file for class statistics (default
+                is Class_stats_train.csv)
         """
-        self.single_stats = single_stats_file
-        self.class_stats = class_stats_file
-        self.datafile = datafile
+        self.datafile = os.path.join('Data', datafile)
+        self.single_stats = os.path.join('csv', single_stats_filename)
+        self.class_stats = os.path.join('csv', class_stats_filename)
 
     def train_model(self):
         """Create classification model.
@@ -54,8 +59,8 @@ class Classifier:
         # compute the mean figure for each feature
         # Create csv file to save class statistics
         else:
-            TrainingData = HeadlineData(self.datafile, self.single_stats)
-            TrainingData.compute_single_statistics()
+            TrainingData = HeadlineData(self.datafile)
+            TrainingData.compute_single_statistics(self.single_stats)
             count_0 = 0
             count_1 = 0
             with open(self.single_stats) as csv_file:
@@ -105,20 +110,28 @@ class Classifier:
             writer.writerow(new_entry)
         csv_file.close()
 
-    def predict(self, test_data, test_stats_file, pred_csv):
+    def predict(self,
+                pred_datafile,
+                pred_single_stats_csv='Single_stats_pred.csv',
+                out_csv='Predictions.csv'):
         """Classify data based on previously trained model.
 
         Args:
-            test_data (str): name of csv file containing data to be classified
-            test_stats_file (str): name of csv file to save single statistics
-                of data to be classified
-            pred_csv (str): name of csv file to save predictions in
+            pred_datafile (str): name of csv file containing data to classify
+            pred_single_stats_csv (str): name of csv file to save single
+                statistics of data to be classified (default is
+                Single_stats_pred.csv)
+            out_csv (str): name of csv file to save predictions in (default is
+                Predictions.csv)
         """
         # If single statistics of the data to predict already
         # exists start predicting (if predictions already made log info)
         # compute single statistics and predict otherwise
-        if (os.path.exists(test_stats_file) and
-                os.path.getsize(test_stats_file) != 0):
+        pred_data = os.path.join('Data', pred_datafile)
+        single_stats_csv = os.path.join('csv', pred_single_stats_csv)
+        pred_csv = os.path.join('csv', out_csv)
+        if (os.path.exists(single_stats_csv) and
+                os.path.getsize(single_stats_csv) != 0):
             logging.info('Statistics for prediction already computed. '
                          'Check if predictions already exist...')
             if (os.path.exists(pred_csv) and
@@ -129,8 +142,8 @@ class Classifier:
                 logging.info('No predictions found. Start predicting...')
         else:
             logging.info('Computing statistics for prediction data...')
-            TestData = HeadlineData(test_data, test_stats_file)
-            TestData.compute_single_statistics()
+            PredictionData = HeadlineData(pred_data)
+            PredictionData.compute_single_statistics(single_stats_csv)
             self._add_csv_entry(pred_csv, ['headline', 'gold', 'prediction'])
             logging.info('Start predicting...')
         # Start predicting if model has been trained
@@ -151,8 +164,8 @@ class Classifier:
                     else:
                         logging.info('Wrong entries in class statistics')
                 csv_file.close()
-                with open(test_stats_file) as test_stats:
-                    csv_reader = csv.reader(test_stats)
+                with open(single_stats_csv) as stats_csv:
+                    csv_reader = csv.reader(stats_csv)
                     row_counter = 0
                     eval_features = []
                     for row in csv_reader:

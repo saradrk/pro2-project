@@ -29,7 +29,7 @@ class HeadlineData:
             and save as csv file
     """
 
-    def __init__(self, data_file, out_csv, language_model='en_core_web_sm'):
+    def __init__(self, data_file, language_model='en_core_web_sm'):
         """Constructor for HeadlineData class.
 
         Args:
@@ -43,7 +43,6 @@ class HeadlineData:
         self.nlp = spacy.load(language_model)
         self._process_file(data_file)
         self.features = (headline.features for headline in self.data)
-        self.out_csv = out_csv
 
     def _process_file(self, filename):
         """Read and process data from file.
@@ -80,10 +79,10 @@ class HeadlineData:
         doc = self.nlp(headline)
         return Headline(is_sarcastic, headline, doc)
 
-    def compute_single_statistics(self):
+    def compute_single_statistics(self, out_csv):
         """Compute feature statistics for every data entry."""
-        with open(self.out_csv, mode='a+') as out_csv:
-            writer = csv.writer(out_csv)
+        with open(out_csv, mode='a+') as out:
+            writer = csv.writer(out)
             line_counter = 0
             for feature_list in self.features:
                 if line_counter == 0:
@@ -92,7 +91,7 @@ class HeadlineData:
                 figures = [feature[1] for feature in feature_list]
                 writer.writerow(figures)
                 line_counter += 1
-        logging.info('Single statistics computed')
+        logging.info(f'Single statistics computed and saved in {out_csv}')
 
 
 if __name__ == '__main__':
