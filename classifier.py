@@ -229,6 +229,31 @@ class Classifier:
             dist += abs(feature_dist)
         return dist
 
+    def accuracy(self, pred_csv='Predictions.csv'):
+        """Return prediction accuracy of classified data.
+
+        Args:
+            pred_csv (str): file name of csv file containing predictions
+        """
+        if os.path.exists(self.pred_csv):
+            with open(self.pred_csv) as predictions:
+                csv_reader = csv.reader(predictions)
+                total_pred = -1
+                correct_pred = 0
+                for pred in csv_reader:
+                    if total_pred == -1:
+                        total_pred += 1
+                    else:
+                        total_pred += 1
+                        if pred[1] == pred[2]:
+                            correct_pred += 1
+            accuracy = (correct_pred/total_pred)
+            logging.info(f'Computed accuracy: {accuracy}')
+            return accuracy
+        else:
+            logging.info('No predictions found to evaluate. '
+                         'Check file name or train model and predict first.')
+
 
 if __name__ == '__main__':
     start_time = time.time()

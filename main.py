@@ -20,7 +20,7 @@ def main():
     IronyClassifier.predict('./Data/Sarcasm_Headlines_Dataset_v2_val.json',
                             './csv/Val_single_stats.csv',
                             './csv/Val_Predictions.csv')
-    Eval = Evaluator('./csv/Val_Predictions.csv')
+    IronyClassifier.accuracy()
     # IronyClassifier = Classifier('./csv/mini_single_stats.csv',
     #                              './csv/mini_class_stats.csv',
     #                              './Data/mini_data.json')
