@@ -48,5 +48,33 @@ In the 'Data' folder you should find following files:
 2: Demonstration of the classifier
 ----------------------------------
 
-To see a demonstration of the classifier you 
+To see a demonstration of the classifier run 'main.py'.
+It trains the classifier on the train split part of the Sarcasm Headline Dataset,
+predicts the test split part and computes the accuracy of those predictions. 
+The outputs are in 'irony_classifier.log' which is created with the first use of
+the program.
+
+To use the classifier with different train oder prediction set run 'classifier.py'.
+It takes two positional arguments, the first one is the file name of the training set,
+the second one the file name of the dataset for prediction. Predicting the validation set e.g.:
+
+	python3 classifier.py Sarcasm_Headlines_Dataset_v2_train.json Sarcasm_Headlines_Dataset_v2_val.json
+
+If the the classifier has already been trained on the training set and the csv files still exist,
+the classifier does not train again and the existing files are used as classification model.
+
+3: Using the Classifier class in a program
+-------------------------------------------
+
+To use the classifier in a program first instantiate it with the name of a dataset file (JSON).
+After that use the train method which has no arguments. 
+Then you can use the predict method. It needs a name of a dataset file (JSON) as argument. 
+After training on a dataset you can predict different datasets without training the model again.
+The prediction method returns the file name that contains the predictions.
+This output can be used as input for the accuracy method which needs a predictions file name as argument.
+
+
+
+
+ 
 

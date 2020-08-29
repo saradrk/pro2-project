@@ -12,10 +12,14 @@ logging.basicConfig(filename='irony_classifier.log', level=logging.INFO,
 
 
 def main():
-    IronyClassifier = Classifier('Sarcasm_Headlines_Dataset_v2_train.json')
+    IronyClassifier = Classifier('Sarcasm_Headlines_Dataset_v2_train.json',
+                                 'Single_stats_train.csv',
+                                 'Class_stats_train.csv')
     IronyClassifier.train_model()
-    IronyClassifier.predict('Sarcasm_Headlines_Dataset_v2_val.json')
-    return IronyClassifier.accuracy()
+    IronyClassifier.predict('Sarcasm_Headlines_Dataset_v2_val.json',
+                            'Single_stats_pred.csv',
+                            'Predictions.csv')
+    return IronyClassifier.accuracy('Predictions.csv')
 
 
 if __name__ == '__main__':

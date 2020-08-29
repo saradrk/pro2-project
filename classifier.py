@@ -9,6 +9,7 @@ import csv
 import os
 import logging
 import time
+import argparse
 
 logging.basicConfig(filename='irony_classifier.log', level=logging.INFO,
                     format='%(asctime)s %(message)s')
@@ -28,10 +29,7 @@ class Classifier:
         accuracy(pred_csv): compute prediction accuracy of classifier
     """
 
-    def __init__(self,
-                 datafile,
-                 single_stats_filename='Single_stats_train.csv',
-                 class_stats_filename='Class_stats_train.csv'):
+    def __init__(self, datafile, single_stats_filename, class_stats_filename):
         """Constructor for Classifier class.
 
         Args:
@@ -101,10 +99,7 @@ class Classifier:
             self._add_csv_entry(self.class_stats, stats_1)
             logging.info('Training completed.')
 
-    def predict(self,
-                pred_datafile,
-                pred_single_stats_csv='Single_stats_pred.csv',
-                out_csv='Predictions.csv'):
+    def predict(self, pred_datafile, pred_single_stats_csv, out_csv):
         """Classify data based on previously trained model.
 
         Args:
@@ -169,7 +164,7 @@ class Classifier:
             logging.info(e)
             logging.error('Model is not trained')
 
-    def accuracy(self, pred_csv='Predictions.csv'):
+    def accuracy(self, pred_csv):
         """Return prediction accuracy of classified data.
 
         Args:
@@ -298,14 +293,37 @@ class Classifier:
 
 
 if __name__ == '__main__':
+    parser = argparse.ArgumentParser(
+        description='Process Headline Data')
+    parser.add_argument('train_data',
+                        help='the JSON file containing the training data')
+    parser.add_argument('-train_stats',
+                        required=False,
+                        default='Single_stats_train.csv',
+                        help='csv file for single statistics of training data')
+    parser.add_argument('-class_stats',
+                        required=False,
+                        default='Class_stats_train.csv',
+                        help='csv file for trained class statistics')
+    parser.add_argument('pred_data',
+                        help='the JSON file containg the prediction data')
+    parser.add_argument('-pred_stats',
+                        required=False,
+                        default='Single_stats_pred.csv',
+                        help='csv file for single stats of prediction data')
+    parser.add_argument('-out_csv',
+                        required=False,
+                        default='Predictions.csv',
+                        help='csv file to save predictions in')
+    parser.add_argument('-pred_csv',
+                        required=False,
+                        default='Predictions.csv',
+                        help='where predictions are saved in')
+    args = parser.parse_args()
     start_time = time.time()
-    C = Classifier('./csv/mini_single_stats.csv',
-                   './csv/mini_class_stats.csv',
-                   './Data/mini_data.json'
-                   )
+    C = Classifier(args.t, args.train_stats, args.class_stats)
     C.train_model()
-    C.predict('./Data/mini_test.json',
-              './csv/mini_test_single_stats.csv',
-              './csv/mini_test_predictions.csv')
+    C.predict(args.p, args.pred_stats, args.out_csv)
     duration = time.time() - start_time
     logging.info(f'Running time classifier: {duration} sec')
+    C.accuracy(args.pred_csv)

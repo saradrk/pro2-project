@@ -8,6 +8,7 @@ import json
 from headline import Headline
 import spacy
 import csv
+import argparse
 
 logging.basicConfig(filename='irony_classifier.log', level=logging.INFO,
                     format='%(asctime)s %(message)s')
@@ -86,7 +87,7 @@ class HeadlineData:
         with open(out_csv, mode='a+') as out:
             writer = csv.writer(out)
             line_counter = 0
-            logging.info('Computing single statistics '
+            logging.info(f'Computing single statistics '
                          'of {self.data_size} data entries...')
             for feature_list in self.features:
                 if line_counter == 0:
@@ -99,5 +100,12 @@ class HeadlineData:
 
 
 if __name__ == '__main__':
-    HD = HeadlineData('./Data/mini_test.json', './csv/out.csv')
-    HD.compute_single_statistics()
+    parser = argparse.ArgumentParser(
+        description='Process Headline Data')
+    parser.add_argument('data',
+                        help='the JSON file containing the headline data')
+    parser.add_argument('output',
+                        help='csv file to save the single feature statisics')
+    args = parser.parse_args()
+    HD = HeadlineData(args.data)
+    HD.compute_single_statistics(output)
