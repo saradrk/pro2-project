@@ -19,7 +19,7 @@ class Classifier:
     """Class for training a classifier for binary classification.
 
     Attributes:
-        datafile (str): name of csv file with headline data‚
+        datafile (str): name of JSON file with headline data‚
         single_stats (str): name of csv file for single statistics of the data
         class_stats (str): name of csv file for class statistics
 
@@ -29,19 +29,17 @@ class Classifier:
         accuracy(pred_csv): compute prediction accuracy of classifier
     """
 
-    def __init__(self, datafile, single_stats_filename, class_stats_filename):
+    def __init__(self, datafile):
         """Constructor for Classifier class.
 
         Args:
-            datafile (str): name of csv file with headline data
-            single_stats (str): name of csv file for single statistics (default
-                is Single_stats_train.csv)
-            class_stats (str): name of csv file for class statistics (default
-                is Class_stats_train.csv)
+            datafile (str): name of JSON file with headline data
         """
         self.datafile = os.path.join('Data', datafile)
-        self.single_stats = os.path.join('csv', single_stats_filename)
-        self.class_stats = os.path.join('csv', class_stats_filename)
+        single_stats_csv = datafile[:-5] + '_single_stats.csv'
+        self.single_stats = os.path.join('csv', single_stats_csv)
+        class_stats_csv = datafile[:-5] + '_class_stats.csv'
+        self.class_stats = os.path.join('csv', class_stats_csv)
 
     def train_model(self):
         """Create classification model.
@@ -99,25 +97,24 @@ class Classifier:
             self._add_csv_entry(self.class_stats, stats_1)
             logging.info('Training completed.')
 
-    def predict(self, pred_datafile, pred_single_stats_csv, out_csv):
+    def predict(self, pred_datafile):
         """Classify data based on previously trained model.
 
         Args:
-            pred_datafile (str): name of csv file containing data to classify
-            pred_single_stats_csv (str): name of csv file to save single
-                statistics of data to be classified (default is
-                Single_stats_pred.csv)
-            out_csv (str): name of csv file to save predictions in (default is
-                Predictions.csv)
+            pred_datafile (str): name of JSON file containing data to classify
+        Return:
+            name of csv file where predictions are saved in
         """
         pred_data = os.path.join('Data', pred_datafile)
-        single_stats_csv = os.path.join('csv', pred_single_stats_csv)
-        pred_csv = os.path.join('csv', out_csv)
-        self._set_up_prediction(pred_data, single_stats_csv, pred_csv)
+        pred_single_stats_csv = pred_datafile[:-5] + '_single_stats.csv'
+        pred_single_stats = os.path.join('csv', pred_single_stats_csv)
+        pred_out_csv = pred_datafile[:-5] + '_predictions.csv'
+        pred_out = os.path.join('csv', pred_out_csv)
+        self._set_up_prediction(pred_data, pred_single_stats, pred_out)
         # Start predicting if model has been trained
         try:
             features, ns_stats, s_stats = self._get_labels_and_class_stats()
-            with open(single_stats_csv) as stats_csv:
+            with open(pred_single_stats) as stats_csv:
                 csv_reader = csv.reader(stats_csv)
                 row_counter = 0
                 eval_features = []
@@ -154,12 +151,13 @@ class Classifier:
                         prediction = 1
                     else:
                         prediction = 1
-                    self._add_csv_entry(pred_csv, [row[0],
+                    self._add_csv_entry(pred_out, [row[0],
                                                    row[1],
                                                    prediction
                                                    ]
                                         )
-            logging.info(f'Prediction completed. Predictions in {pred_csv}')
+            logging.info(f'Prediction completed. Predictions in {pred_out}')
+            return pred_out_csv
         except Exception as e:
             logging.info(e)
             logging.error('Model is not trained')
@@ -297,33 +295,13 @@ if __name__ == '__main__':
         description='Process Headline Data')
     parser.add_argument('train_data',
                         help='the JSON file containing the training data')
-    parser.add_argument('-train_stats',
-                        required=False,
-                        default='Single_stats_train.csv',
-                        help='csv file for single statistics of training data')
-    parser.add_argument('-class_stats',
-                        required=False,
-                        default='Class_stats_train.csv',
-                        help='csv file for trained class statistics')
     parser.add_argument('pred_data',
                         help='the JSON file containg the prediction data')
-    parser.add_argument('-pred_stats',
-                        required=False,
-                        default='Single_stats_pred.csv',
-                        help='csv file for single stats of prediction data')
-    parser.add_argument('-out_csv',
-                        required=False,
-                        default='Predictions.csv',
-                        help='csv file to save predictions in')
-    parser.add_argument('-pred_csv',
-                        required=False,
-                        default='Predictions.csv',
-                        help='where predictions are saved in')
     args = parser.parse_args()
     start_time = time.time()
-    C = Classifier(args.t, args.train_stats, args.class_stats)
+    C = Classifier(args.train_data)
     C.train_model()
-    C.predict(args.p, args.pred_stats, args.out_csv)
+    predictions = C.predict(args.pred_data)
     duration = time.time() - start_time
     logging.info(f'Running time classifier: {duration} sec')
-    C.accuracy(args.pred_csv)
+    C.accuracy(predictions)

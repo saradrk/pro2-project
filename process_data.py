@@ -19,11 +19,11 @@ class HeadlineData:
 
     Attributes:
         data (list): list with headline objects constructed of data entries
+        data_size (int): Total count of data entries
         model (str): spacy language model
         nlp (spacy Language object): spacy Language object instansiated with
             language model
         features (generator): generator of feature lists for data entries
-        data_size (int): Total count of data entries
 
     Methods:
         compute_single_statistics(): compute feature statistics of the data
@@ -35,7 +35,6 @@ class HeadlineData:
 
         Args:
             data_file (str): name of file containing headline data
-            out_csv (str): name of csv file for feature statistics of the data
             language_modal (str): spacy language model (default is
                                                         en_core_web_sm)
         """
@@ -87,8 +86,8 @@ class HeadlineData:
         with open(out_csv, mode='a+') as out:
             writer = csv.writer(out)
             line_counter = 0
-            logging.info(f'Computing single statistics '
-                         'of {self.data_size} data entries...')
+            logging.info('Computing single statistics '
+                         'of {} data entries...'.format(self.data_size))
             for feature_list in self.features:
                 if line_counter == 0:
                     header = [feature[0] for feature in feature_list]
@@ -108,4 +107,4 @@ if __name__ == '__main__':
                         help='csv file to save the single feature statisics')
     args = parser.parse_args()
     HD = HeadlineData(args.data)
-    HD.compute_single_statistics(output)
+    HD.compute_single_statistics(args.output)
