@@ -35,17 +35,18 @@ class HeadlineData:
 
         Args:
             data_file (str): name of file containing headline data
-            language_modal (str): spacy language model (default is
+            language_model (str): spacy language model (default is
                                                         en_core_web_sm)
         """
+        self.data_file = data_file
         self.data = []
         self.data_size = 0
         self.model = language_model
         self.nlp = spacy.load(language_model)
-        self._process_file(data_file)
+        self._process_file()
         self.features = (headline.features for headline in self.data)
 
-    def _process_file(self, filename):
+    def _process_file(self):
         """Read and process data from file.
 
         Add Headline objects to data attribute if the data is valid,
@@ -55,7 +56,7 @@ class HeadlineData:
             filename (str): name of file containing data
         """
         try:
-            with open(filename, 'r') as file:
+            with open(self.data_file, 'r') as file:
                 logging.info('Processing data...')
                 entry_count = 0
                 for entry in file:
@@ -83,7 +84,7 @@ class HeadlineData:
 
     def compute_single_statistics(self, out_csv):
         """Compute feature statistics for every data entry."""
-        with open(out_csv, mode='a+') as out:
+        with open(out_csv, mode='w+') as out:
             writer = csv.writer(out)
             line_counter = 0
             logging.info('Computing single statistics '

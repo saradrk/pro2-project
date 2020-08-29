@@ -29,17 +29,19 @@ class Classifier:
         accuracy(pred_csv): compute prediction accuracy of classifier
     """
 
-    def __init__(self, datafile):
+    def __init__(self, datafile, path_to_data=''):
         """Constructor for Classifier class.
 
         Args:
             datafile (str): name of JSON file with headline data
+            path_to_data (str): where the Data and csv directories are
         """
-        self.datafile = os.path.join('Data', datafile)
+        self.path = path_to_data
+        self.datafile = os.path.join(self.path, 'Data', datafile)
         single_stats_csv = datafile[:-5] + '_single_stats.csv'
-        self.single_stats = os.path.join('csv', single_stats_csv)
+        self.single_stats = os.path.join(self.path, 'csv', single_stats_csv)
         class_stats_csv = datafile[:-5] + '_class_stats.csv'
-        self.class_stats = os.path.join('csv', class_stats_csv)
+        self.class_stats = os.path.join(self.path, 'csv', class_stats_csv)
 
     def train_model(self):
         """Create classification model.
@@ -96,6 +98,7 @@ class Classifier:
             self._add_csv_entry(self.class_stats, stats_0)
             self._add_csv_entry(self.class_stats, stats_1)
             logging.info('Training completed.')
+            return self.class_stats
 
     def predict(self, pred_datafile):
         """Classify data based on previously trained model.
@@ -105,11 +108,14 @@ class Classifier:
         Return:
             name of csv file where predictions are saved in
         """
-        pred_data = os.path.join('Data', pred_datafile)
+        pred_data = os.path.join(self.path, 'Data', pred_datafile)
         pred_single_stats_csv = pred_datafile[:-5] + '_single_stats.csv'
-        pred_single_stats = os.path.join('csv', pred_single_stats_csv)
+        pred_single_stats = os.path.join(self.path,
+                                         'csv',
+                                         pred_single_stats_csv
+                                         )
         pred_out_csv = pred_datafile[:-5] + '_predictions.csv'
-        pred_out = os.path.join('csv', pred_out_csv)
+        pred_out = os.path.join(self.path, 'csv', pred_out_csv)
         self._set_up_prediction(pred_data, pred_single_stats, pred_out)
         # Start predicting if model has been trained
         try:
@@ -157,7 +163,7 @@ class Classifier:
                                                    ]
                                         )
             logging.info(f'Prediction completed. Predictions in {pred_out}')
-            return pred_out_csv
+            return pred_out
         except Exception as e:
             logging.info(e)
             logging.error('Model is not trained')
@@ -168,7 +174,7 @@ class Classifier:
         Args:
             pred_csv (str): file name of csv file containing predictions
         """
-        pred_csv = os.path.join('csv', pred_csv)
+        pred_csv = os.path.join(self.path, 'csv', pred_csv)
         if os.path.exists(pred_csv):
             logging.info('Computing accuracy...')
             with open(pred_csv) as predictions:

@@ -74,7 +74,7 @@ class Headline:
         # Compute and add average word length
         word_lengths = [len(token.text) for token in self.doc]
         awl = (sum(word_lengths) / len(word_lengths))
-        self.features.append(('average_word_length', awl))
+        self.features.append(('average_word_length', float(awl)))
 
     def _extract_syntactic_features(self):
         """Add features of syntactic nature to features attribute."""
@@ -83,8 +83,8 @@ class Headline:
         n_adjectives = sum(adjectives)
         # proportion of adjectives
         adjective_ratio = len(adjectives) / len(self._tokens())
-        self.features.append(('n_adjectives', n_adjectives))
-        self.features.append(('adjective_ratio', adjective_ratio))
+        self.features.append(('n_adjectives', float(n_adjectives)))
+        self.features.append(('adjective_ratio', float(adjective_ratio)))
 
     def _extract_sentiment_feature(self):
         """Add sentiment features to features attribute."""
@@ -122,11 +122,11 @@ class Headline:
                 pos_scores.append(0)
                 neg_scores.append(0)
         # Add highest polarity score of adjectives
-        self.features.append(('adj_max', max(adj_scores)))
+        self.features.append(('adj_max', float(max(adj_scores))))
         # Add highest polarity score of adverbs
-        self.features.append(('adv_max', max(adv_scores)))
+        self.features.append(('adv_max', float(max(adv_scores))))
         # gap between positive and negative scores
-        gap = abs((sum(pos_scores) - sum(neg_scores)))
+        gap = abs((sum(pos_scores) - float(sum(neg_scores))))
         self.features.append(('pos_neg_gap', gap))
 
     def _pos_for_senti_synset(self, pos_tag):
