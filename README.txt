@@ -1,6 +1,12 @@
+31.08.2020 - Pro2-A SoSe2020: Final Assignment - Sara Derakhshani
+
+
 Irony classifier for newspaper headlines
+________________________________________
+
 
 This repository consists of:
+
 	README.txt
 		This file.
 	classifier.py
@@ -31,7 +37,8 @@ This repository consists of:
 	
 
 1: Preparations
-----------------
+---------------
+
 Instructions after downloading the repository:
 * Download Version 2 of the data (Sarcasm_Headlines_Dataset_v2.json) from:
 https://www.kaggle.com/rmisra/news-headlines-dataset-for-sarcasm-detection
@@ -55,8 +62,10 @@ In the 'Data' folder you should find following files:
 	Sarcasm_Headlines_Dataset_v2_train.json
 	Sarcasm_Headlines_Dataset_v2.json
 
+
 2: Demonstration of the classifier
 ----------------------------------
+
 To see a demonstration of the classifier run 'main.py'.
 It trains the classifier on the train split part of the Sarcasm Headline Dataset,
 predicts the test split part and computes the accuracy of those predictions. 
@@ -72,12 +81,16 @@ the second one the file name of the dataset for prediction. Predicting the valid
 If the the classifier has already been trained on the training set and the csv files still exist,
 the classifier does not train again and the existing files are used as classification model.
 
+
 3: Unittests
--------------
+------------
+
 Run 'test.py'.
 
+
 4: Using the Classifier class in a program
--------------------------------------------
+------------------------------------------
+
 To use the classifier in a program first instantiate it with the file path to a dataset file (JSON).
 After that use the train method which needs no arguments. 
 Then you can use the predict method. It needs also a file path to a dataset file (JSON) as argument. 
