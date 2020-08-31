@@ -1,5 +1,4 @@
 mkdir Data
-mkdir csv
 
 mv Sarcasm_Headlines_Dataset_v2.json Data
 

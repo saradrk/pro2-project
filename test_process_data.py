@@ -13,7 +13,7 @@ import csv
 class HeadlineDataTestCase(unittest.TestCase):
 
     def setUp(self):
-        datafile = os.path.join('test_data', 'Data', 'unittest_data.json')
+        datafile = os.path.join('test_data', 'unittest_data.json')
         self.TestData = HeadlineData(datafile)
 
     def test_process_file(self):
@@ -27,9 +27,7 @@ class HeadlineDataTestCase(unittest.TestCase):
                                  'Headline')
 
     def test_compute_single_statistics(self):
-        test_single_stats = os.path.join('test_data',
-                                         'csv',
-                                         'test_single_stats.csv')
+        test_single_stats = os.path.join('test_data', 'test_single_stats.csv')
         self.TestData.compute_single_statistics(test_single_stats)
         with open(test_single_stats) as stats:
             reader = csv.reader(stats)
@@ -40,9 +38,11 @@ class HeadlineDataTestCase(unittest.TestCase):
 class ClassifierTestCase(unittest.TestCase):
 
     def setUp(self):
-        self.Classifier = Classifier('unittest_data.json', 'test_data')
+        datafile = os.path.join('test_data', 'unittest_data.json')
+        self.pred_datafile = os.path.join('test_data',
+                                          'unittest_pred_data.json')
+        self.Classifier = Classifier(datafile)
         self.Classifier.train_model()
-        self.pred_csv = self.Classifier.predict('unittest_pred_data.json')
 
     def test_train_model(self):
         with open(self.Classifier.class_stats) as stats:
@@ -56,15 +56,18 @@ class ClassifierTestCase(unittest.TestCase):
         self.assertEqual(first_row_class_stats, first_row_single_stats[1:])
 
     def test_predict(self):
-        with open(self.pred_csv) as pred_csv:
+        pred_csv = self.Classifier.predict(self.pred_datafile)
+        with open(pred_csv) as pred_csv:
             pred_reader = csv.reader(pred_csv)
             next(pred_reader)
             first_row_predictions = next(pred_reader)
         self.assertEqual(first_row_predictions[2], '1')
 
-    # def test_accuracy(self):
-    #     accuracy = self.Classifier.accuracy(self.pred_csv)
-    #     self.assertEqual(accuracy, 1)
+    def test_accuracy(self):
+        pred_csv = self.Classifier.predict(self.pred_datafile)
+        accuracy = self.Classifier.accuracy(pred_csv)
+        self.assertEqual(accuracy, 1)
+
 
 if __name__ == '__main__':
     unittest.main()

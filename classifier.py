@@ -19,35 +19,40 @@ class Classifier:
     """Class for training a classifier for binary classification.
 
     Attributes:
-        datafile (str): name of JSON file with headline data‚
+        datafile_path (str): complete path to training data file
+        path (str) path where the training data lives
+        datafile (str): name of JSON file containing the training data
         single_stats (str): name of csv file for single statistics of the data
         class_stats (str): name of csv file for class statistics
 
     Methods:
         train_model(): compute class statistics for prediction
-        predict(test_data, test_stats_file, pred_csv): classify unknown data
-        accuracy(pred_csv): compute prediction accuracy of classifier
+        predict(pred_datafile_path): classify data
+        accuracy(pred_csv_path): compute prediction accuracy of classifier
     """
 
-    def __init__(self, datafile, path_to_data=''):
+    def __init__(self, datafile_path):
         """Constructor for Classifier class.
 
         Args:
-            datafile (str): name of JSON file with headline data
-            path_to_data (str): where the Data and csv directories are
+            datafile_path (str): complete path to training data file
         """
-        self.path = path_to_data
-        self.datafile = os.path.join(self.path, 'Data', datafile)
-        single_stats_csv = datafile[:-5] + '_single_stats.csv'
-        self.single_stats = os.path.join(self.path, 'csv', single_stats_csv)
-        class_stats_csv = datafile[:-5] + '_class_stats.csv'
-        self.class_stats = os.path.join(self.path, 'csv', class_stats_csv)
+        self.datafile_path = datafile_path
+        self.path = os.path.dirname(datafile_path)
+        self.datafile = os.path.basename(datafile_path)
+        single_stats_csv = self.datafile[:-5] + '_single_stats.csv'
+        self.single_stats = os.path.join(self.path, single_stats_csv)
+        class_stats_csv = self.datafile[:-5] + '_class_stats.csv'
+        self.class_stats = os.path.join(self.path, class_stats_csv)
 
     def train_model(self):
         """Create classification model.
 
         Compute single statistics for data entries and save as csv file.
         Compute class statistics from single statistics and save as csv file.
+
+        Return:
+            Path to file containing computed class statistics (str)
         """
         # Test if model has been trained already
         if (os.path.exists(self.single_stats) and
@@ -59,7 +64,7 @@ class Classifier:
         # Create csv file to save class statistics
         else:
             logging.info('Start training...')
-            TrainingData = HeadlineData(self.datafile)
+            TrainingData = HeadlineData(self.datafile_path)
             TrainingData.compute_single_statistics(self.single_stats)
             count_0 = 0
             count_1 = 0
@@ -100,84 +105,90 @@ class Classifier:
             logging.info('Training completed.')
             return self.class_stats
 
-    def predict(self, pred_datafile):
+    def predict(self, pred_datafile_path):
         """Classify data based on previously trained model.
 
         Args:
             pred_datafile (str): name of JSON file containing data to classify
         Return:
-            name of csv file where predictions are saved in
+            Path to csv file containing the predictions (str)
         """
-        pred_data = os.path.join(self.path, 'Data', pred_datafile)
-        pred_single_stats_csv = pred_datafile[:-5] + '_single_stats.csv'
-        pred_single_stats = os.path.join(self.path,
-                                         'csv',
-                                         pred_single_stats_csv
-                                         )
-        pred_out_csv = pred_datafile[:-5] + '_predictions.csv'
-        pred_out = os.path.join(self.path, 'csv', pred_out_csv)
-        self._set_up_prediction(pred_data, pred_single_stats, pred_out)
-        # Start predicting if model has been trained
-        try:
-            features, ns_stats, s_stats = self._get_labels_and_class_stats()
-            with open(pred_single_stats) as stats_csv:
-                csv_reader = csv.reader(stats_csv)
-                row_counter = 0
-                eval_features = []
-                for row in csv_reader:
-                    # first row contains feature labels of prediction data
-                    if row_counter == 0:
-                        eval_features += row[2:]
-                        # get indices of relevant features for prediction
-                        # in case more features were extracted for
-                        # training data or features of prediction and
-                        # training data are in different order
-                        rel_ind = self._get_relevant_indices(features,
-                                                             eval_features)
-                        # extract relevant class statistics
-                        nonsarcastic_stats = [ns_stats[i] for i in rel_ind]
-                        sarcastic_stats = [s_stats[i] for i in rel_ind]
-                        # log features of prediction data
-                        logging.info('Features used for prediction: '
-                                     '{}'.format(eval_features))
-                        row_counter += 1
-                        continue
-                    # compute distances between statistics of the
-                    # prediction data entry and class entries
-                    stats_to_predict = row[2:]
-                    nonsarcastic_dist = self._distance(nonsarcastic_stats,
-                                                       stats_to_predict)
-                    sarcastic_dist = self._distance(sarcastic_stats,
-                                                    stats_to_predict)
-                    # Classify as the class with smaller distance
-                    # if equal diastance classify as irony
-                    if nonsarcastic_dist < sarcastic_dist:
-                        prediction = 0
-                    elif nonsarcastic_dist > sarcastic_dist:
-                        prediction = 1
-                    else:
-                        prediction = 1
-                    self._add_csv_entry(pred_out, [row[0],
-                                                   row[1],
-                                                   prediction
-                                                   ]
-                                        )
-            logging.info(f'Prediction completed. Predictions in {pred_out}')
+        pred_data = os.path.basename(pred_datafile_path)
+        pred_single_stats_csv = pred_data[:-5] + '_single_stats.csv'
+        pred_single_stats = os.path.join(self.path, pred_single_stats_csv)
+        pred_out_csv = pred_data[:-5] + '_predictions.csv'
+        pred_out = os.path.join(self.path, pred_out_csv)
+        prediction_status = self._set_up_prediction(pred_datafile_path,
+                                                    pred_single_stats,
+                                                    pred_out)
+        # If pedictions already exist return file path
+        if prediction_status is True:
             return pred_out
-        except Exception as e:
-            logging.info(e)
-            logging.error('Model is not trained')
+        else:
+            # Start predicting if model has been trained
+            try:
+                features, ns_stats, s_stats = self._get_labels_and_class_stats()
+                with open(pred_single_stats) as stats_csv:
+                    csv_reader = csv.reader(stats_csv)
+                    row_counter = 0
+                    eval_features = []
+                    for row in csv_reader:
+                        # first row contains feature labels of prediction data
+                        if row_counter == 0:
+                            eval_features += row[2:]
+                            # get indices of relevant features for prediction
+                            # in case more features were extracted for
+                            # training data or features of prediction and
+                            # training data are in different order
+                            rel_ind = self._get_relevant_indices(features,
+                                                                 eval_features)
+                            # extract relevant class statistics
+                            nonsarcastic_stats = [ns_stats[i] for i in rel_ind]
+                            sarcastic_stats = [s_stats[i] for i in rel_ind]
+                            # log features of prediction data
+                            logging.info('Features used for prediction: '
+                                         '{}'.format(eval_features))
+                            row_counter += 1
+                            continue
+                        # compute distances between statistics of the
+                        # prediction data entry and class entries
+                        stats_to_predict = row[2:]
+                        nonsarcastic_dist = self._distance(nonsarcastic_stats,
+                                                           stats_to_predict)
+                        sarcastic_dist = self._distance(sarcastic_stats,
+                                                        stats_to_predict)
+                        # Classify as the class with smaller distance
+                        # if equal diastance classify as irony
+                        if nonsarcastic_dist < sarcastic_dist:
+                            prediction = 0
+                        elif nonsarcastic_dist > sarcastic_dist:
+                            prediction = 1
+                        else:
+                            prediction = 1
+                        self._add_csv_entry(pred_out, [row[0],
+                                                       row[1],
+                                                       prediction
+                                                       ]
+                                            )
+                logging.info(f'Prediction process completed. '
+                             'Predictions in {pred_out}')
+                return pred_out
+            except Exception as e:
+                logging.info(e)
+                logging.error('Model is not trained')
 
-    def accuracy(self, pred_csv):
-        """Return prediction accuracy of classified data.
+    def accuracy(self, pred_csv_path):
+        """Compute prediction accuracy of classified data.
 
         Args:
             pred_csv (str): file name of csv file containing predictions
+
+        Return:
+            accuracy (float)
         """
-        pred_csv = os.path.join(self.path, 'csv', pred_csv)
-        if os.path.exists(pred_csv):
+        if os.path.exists(pred_csv_path):
             logging.info('Computing accuracy...')
-            with open(pred_csv) as predictions:
+            with open(pred_csv_path) as predictions:
                 csv_reader = csv.reader(predictions)
                 total_pred = -1
                 correct_pred = 0
@@ -212,34 +223,37 @@ class Classifier:
                            single_stats_path,
                            pred_out_path):
         """Set up prediction process.
-
         Args:
             pred_data_path (str): Path todata to predict
             single_stats_path (str): Path to csv file to save single stats
             pred_out_path (str): Path to prediction output file
+
+        Return:
+            True: If predictions already exist
+            False: Otherwise
         """
+        if (os.path.exists(pred_out_path) and
+                os.path.getsize(pred_out_path) != 0):
+            logging.info('Predictions found in {}'.format(pred_out_path))
+            return True
         # If single statistics of the data to predict already
-        # exists start predicting (if predictions already made log path info)
-        # compute single statistics otherwise
-        if (os.path.exists(single_stats_path) and
-                os.path.getsize(single_stats_path) != 0):
-            logging.info('Statistics for prediction already computed. '
-                         'Check if predictions already exist...')
-            if (os.path.exists(pred_out_path) and
-                    os.path.getsize(pred_out_path) != 0):
-                logging.info('Predictions found in {}'.format(pred_out_path))
-                return None
-            else:
-                logging.info('No predictions found. Start predicting...')
+        # exists start prediction process
+        # Compute single statistics otherwise
         else:
-            logging.info('Start predicting...')
-            PredictionData = HeadlineData(pred_data_path)
-            PredictionData.compute_single_statistics(single_stats_path)
-            self._add_csv_entry(pred_out_path, ['headline',
-                                                'gold',
-                                                'prediction'
-                                                ]
-                                )
+            if (os.path.exists(single_stats_path) and
+                    os.path.getsize(single_stats_path) != 0):
+                logging.info('Statistics for prediction already computed.')
+                return False
+            else:
+                logging.info('Start predicting...')
+                PredictionData = HeadlineData(pred_data_path)
+                PredictionData.compute_single_statistics(single_stats_path)
+                self._add_csv_entry(pred_out_path, ['headline',
+                                                    'gold',
+                                                    'prediction'
+                                                    ]
+                                    )
+                return False
 
     def _get_labels_and_class_stats(self):
         """Return list of feature names of the training data and

@@ -12,7 +12,7 @@ class Headline:
     Attributes:
         is_sarcastic (int): 1 if sarcastic 0 otherwise
         headline (str): the newspaper headline
-        link (str): article link
+        link (str): article link (default is None)
         doc (object of spacy Doc class): Doc object instantiated with headline
         features (list): list of linguistic features
 
@@ -25,7 +25,7 @@ class Headline:
         Args:
             is_sarcastic (int): 1 if sarcastic 0 otherwise
             headline (str): the newspaper headline
-            doc_abj (spacy Doc object): Doc object instantiated with headline
+            doc_obj (spacy Doc object): Doc object instantiated with headline
             link (str): article link (optional)
         """
         self.is_sarcastic = is_sarcastic

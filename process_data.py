@@ -18,12 +18,14 @@ class HeadlineData:
     """Class for processing and feature extraction of headline data.
 
     Attributes:
-        data (list): list with headline objects constructed of data entries
-        data_size (int): Total count of data entries
+        data_file (str): path to data file
+        data (list): list of Headline class objects
+            instantiated with data entries
+        data_size (int): Total number of data entries
         model (str): spacy language model
-        nlp (spacy Language object): spacy Language object instansiated with
+        nlp (spacy Language object): spacy Language object instantiated with
             language model
-        features (generator): generator of feature lists for data entries
+        features (generator): generates feature lists of data entries
 
     Methods:
         compute_single_statistics(): compute feature statistics of the data
@@ -71,10 +73,13 @@ class HeadlineData:
             logging.info('{} entries processed'.format(entry_count))
 
     def _process_headline(self, data_entry):
-        """Create and return Headline object of data entry.
+        """Create Headline object of data entry.
 
         Args:
             data_entry (str): headline data entry in JSON format
+
+        Return:
+            Headline object
         """
         json_entry = json.loads(data_entry)
         is_sarcastic = json_entry['is_sarcastic']
@@ -83,7 +88,11 @@ class HeadlineData:
         return Headline(is_sarcastic, headline, doc)
 
     def compute_single_statistics(self, out_csv):
-        """Compute feature statistics for every data entry."""
+        """Compute feature statistics for every data entry.
+
+        Args:
+            out_csv (str): where to save the statistics
+        """
         with open(out_csv, mode='w+') as out:
             writer = csv.writer(out)
             line_counter = 0
@@ -103,9 +112,9 @@ if __name__ == '__main__':
     parser = argparse.ArgumentParser(
         description='Process Headline Data')
     parser.add_argument('data',
-                        help='the JSON file containing the headline data')
+                        help='path to JSON file containing the headline data')
     parser.add_argument('output',
-                        help='csv file to save the single feature statisics')
+                        help='path to csv file to save the feature statisics')
     args = parser.parse_args()
     HD = HeadlineData(args.data)
     HD.compute_single_statistics(args.output)
