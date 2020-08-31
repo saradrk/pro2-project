@@ -7,8 +7,11 @@ ________________________________________
 
 This repository consists of:
 
-	README.txt
-		This file.
+	Docs/
+		README.txt
+			This file.
+		Report.pdf
+			Project report.
 	classifier.py
 		Implements Classifier class with train, predict and accuracy method.
 		Uses HeadlineData class for processing the data.
@@ -42,6 +45,7 @@ This repository consists of:
 Instructions after downloading the repository:
 * Download Version 2 of the data (Sarcasm_Headlines_Dataset_v2.json) from:
 https://www.kaggle.com/rmisra/news-headlines-dataset-for-sarcasm-detection
+(You don't need to sign up anywhere)
 * Unpack the data and move it to this folder (the project folder).
 * The data file should be named Sarcasm_Headlines_Dataset_v2.json. 
 If this is not the case check if you really downloaded version 2 and/or change the name. 
@@ -55,7 +59,7 @@ or
 	source ./env/bin/activate
 (depending on your operating system)
 * Now run 'set-up.sh' from this folder.
-You should now find 3 new folders in this directory ('env', 'csv', 'Data').
+You should now find 3 new folders in this directory ('env', 'Data').
 In the 'Data' folder you should find following files:
 	Sarcasm_Headlines_Dataset_v2_val.json
 	Sarcasm_Headlines_Dataset_v2_test.json
@@ -80,6 +84,7 @@ the second one the file name of the dataset for prediction. Predicting the valid
 
 If the the classifier has already been trained on the training set and the csv files still exist,
 the classifier does not train again and the existing files are used as classification model.
+Classification with training and predicting can take about 4-7 minutes and just predicting about 40-60 seconds.
 
 
 3: Unittests
